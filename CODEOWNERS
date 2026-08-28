@@ -1,0 +1,12 @@
+# CODEOWNERS for omniui
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# No required-review gate is configured on this repo (machine gates only,
+# per org standing policy) — this file records ownership for visibility,
+# it does not block merges.
+
+# Default owner for everything in the repo
+* @jonahgabriel
+
+# GitHub configuration (workflows, branch rules, dependabot, etc.)
+/.github/ @jonahgabriel
