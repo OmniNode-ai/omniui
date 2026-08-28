@@ -1,0 +1,12 @@
+{
+  "name": "@omninode/omniui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "OmniNode web component library and renderer.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'no build target yet -- Phase 1A (OMN-16879) scaffolds the real build' && exit 0",
+    "test": "echo 'no tests yet -- Phase 1A (OMN-16879) scaffolds the real test suite' && exit 0"
+  }
+}

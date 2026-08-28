@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 OmniNode.ai Inc.
+# SPDX-License-Identifier: MIT
+#
+# OMN-16879 / D2b: publish-on-release to public npm with provenance.
+# Public repo -- GitHub-hosted runners only.
+#
+# D2b ruling (2026-08-28): the Plane-2 code artifact (this library) reaches
+# every consumer as an immutable, exact-pinned, provenance-attested public
+# npm package. `--provenance` requires npm >= 9.5 and the `id-token: write`
+# permission below (OIDC), which is how npm verifies this build ran in this
+# repo's own Actions workflow rather than being hand-uploaded.
+#
+# SCAFFOLD-PHASE NOTE: package.json ships `"private": true` until Phase 1A
+# lands the real library and G1A.1 (a scratch consumer outside this repo
+# installs the pinned artifact, verifies its digest and provenance, and
+# rolls back) is proven. `npm publish` refuses to publish a private
+# package -- that refusal is intentional here, not a bug, until Phase 1A
+# flips it. The downstream pin-bump workflow mirrored from omnibase_core's
+# publish-downstream-pin-bump.yml (per D2b) is a separate Phase 1A
+# deliverable, not part of this scaffold.
+
+name: Publish
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

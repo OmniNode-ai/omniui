@@ -1,0 +1,22 @@
+node_modules/
+dist/
+build/
+*.local
+.env
+.env.local*
+
+# Editors / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Package manager
+.npm/
+npm-debug.log*
+
+# Storybook
+storybook-static/
+
+# Test / coverage
+coverage/
+.pytest_cache/
