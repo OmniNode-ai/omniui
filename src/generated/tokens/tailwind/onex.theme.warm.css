@@ -1,0 +1,47 @@
+/* GENERATED FILE — DO NOT EDIT.
+ *
+ * Compiled from a ModelThemeInstance by `npm run compile:tokens` (OMN-16886).
+ * Hand-editing a value here does not change what any surface renders — it only
+ * makes this artifact disagree with the theme instance it claims to compile,
+ * which `npm run check:tokens` turns into a failing build.
+ *
+ * To change a token VALUE, publish a new instance revision upstream and
+ * recapture. Editing a value is never a code change.
+ */
+
+/* Tailwind v4 @theme preset for onex.theme.warm
+ * revision 1.0.0 · schema 1.0.0
+ * sha256:72877506f4c236713670175a41c91944b9ad09eab277bffa94d6847a47c33d28
+ *
+ * omniweb only (D7). omnidash does not consume Tailwind.
+ */
+@theme {
+  --radius-lg: 1rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.25rem;
+  --color-accent-primary: #ea580c;
+  --color-accent-secondary: #fb923c;
+  --color-background-elevated: #44403c;
+  --color-background-primary: #1c1917;
+  --color-background-secondary: #292524;
+  --color-border-default: #44403c;
+  --color-border-strong: #57534e;
+  --color-status-error: #ef4444;
+  --color-status-info: #22d3ee;
+  --color-status-success: #84cc16;
+  --color-status-warning: #f59e0b;
+  --color-text-disabled: #78716c;
+  --color-text-primary: #fafaf9;
+  --color-text-secondary: #d6d3d1;
+  --font-base: 'Inter', system-ui, sans-serif;
+  --text-lg: 1.125rem;
+  --text-md: 1rem;
+  --text-sm: 0.875rem;
+  --font-weight-bold: 700;
+  --font-weight-normal: 400;
+  --spacing-lg: 1.5rem;
+  --spacing-md: 1rem;
+  --spacing-sm: 0.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xs: 0.25rem;
+}

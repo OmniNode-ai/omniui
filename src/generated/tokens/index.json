@@ -1,0 +1,35 @@
+{
+  "catalog_version": "1.0.0",
+  "themes": [
+    {
+      "theme_id": "onex.theme.dark",
+      "revision": "1.0.0",
+      "digest": "sha256:f73b1716faa9d73f53c0331ded08ff5c72d2d5217a05c5fdb91c7ad3ab26c26f",
+      "artifacts": [
+        "src/generated/tokens/onex.theme.dark.css",
+        "src/generated/tokens/onex.theme.dark.ts",
+        "src/generated/tokens/tailwind/onex.theme.dark.css"
+      ]
+    },
+    {
+      "theme_id": "onex.theme.light",
+      "revision": "1.0.0",
+      "digest": "sha256:aa8ec6e7434ace76186ef634be874fc1e70e48e2fd96cd0c2cb729ef9adf5c3a",
+      "artifacts": [
+        "src/generated/tokens/onex.theme.light.css",
+        "src/generated/tokens/onex.theme.light.ts",
+        "src/generated/tokens/tailwind/onex.theme.light.css"
+      ]
+    },
+    {
+      "theme_id": "onex.theme.warm",
+      "revision": "1.0.0",
+      "digest": "sha256:72877506f4c236713670175a41c91944b9ad09eab277bffa94d6847a47c33d28",
+      "artifacts": [
+        "src/generated/tokens/onex.theme.warm.css",
+        "src/generated/tokens/onex.theme.warm.ts",
+        "src/generated/tokens/tailwind/onex.theme.warm.css"
+      ]
+    }
+  ]
+}

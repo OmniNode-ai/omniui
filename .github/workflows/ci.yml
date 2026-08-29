@@ -53,6 +53,13 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # G1A.3 -- drift enforcement. Compares the checked-in compiled token
+      # artifacts against a fresh compile of their declared source, byte for
+      # byte. Hand-editing one compiled token value fails this step, and this
+      # step is inside a required status check, so it fails the merge.
+      - name: Check compiled token artifacts
+        run: npm run check:tokens
+
       - name: Build
         run: npm run build
 

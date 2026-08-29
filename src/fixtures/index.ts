@@ -14,6 +14,11 @@
  * These fixtures are the substrate Phase 1B is measured on. They exist before
  * the components that render them on purpose — capturing them inside 1B would
  * let the fixture be shaped to fit the component.
+ *
+ * The theme capture moved to `themes/` at the repo root in OMN-16886: it is a
+ * **build input** to the token compiler, not a test fixture, and leaving it
+ * under `src/fixtures/` would have implied a compiled artifact was derived from
+ * something a test could edit.
  */
 
 import type { ModelThemeCatalog, ModelThemeInstance } from '../generated/onex-models.js';
@@ -21,7 +26,7 @@ import type { Theme } from '../theme/theme-token-set.js';
 
 import consumerFlowExposure from './projections/consumer-flow.v1.exposure.json' with { type: 'json' };
 import consumerFlowResponse from './projections/consumer-flow.v1.response.json' with { type: 'json' };
-import themeCatalogCapture from './themes/theme-catalog.capture.json' with { type: 'json' };
+import themeCatalogCapture from '../../themes/theme-catalog.capture.json' with { type: 'json' };
 
 /** The packaged theme catalog, exactly as `omnibase_core` publishes it. */
 export const THEME_CATALOG = themeCatalogCapture.catalog as unknown as ModelThemeCatalog;
