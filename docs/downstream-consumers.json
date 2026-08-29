@@ -1,0 +1,25 @@
+{
+  "_doc": "Repos that pin the omniui package. Read by .github/workflows/downstream-pin-bump.yml via scripts/pin-bump-npm.mjs. Mirrors omnibase_core/docs/downstream-repos.yaml (OMN-9050) in shape with two divergences, both deliberate: (1) omnibase_core pins by GIT SHA rewritten with a regex over workflow files; omniui pins by EXACT NPM VERSION in package.json, so the bump edits a dependency entry and then regenerates the lockfile \u2014 rewriting package.json without regenerating the lockfile yields a pin that says one thing and installs another, which is worse than not bumping. (2) JSON, not YAML: this is a Node repo with no Python and no YAML parser, and adding either to a public component library so one CI script can read a manifest is a dependency bought for nothing.",
+  "_registration_rule": "When a repo starts consuming omniui, ADD it here. The bot reads this manifest and never discovers consumers. That is deliberate: discovery is how a consumer gets silently dropped, which is Stall 1's failure mode wearing a different hat.",
+  "version": 1,
+  "repos": [
+    {
+      "name": "omnidash",
+      "owner": "OmniNode-ai",
+      "base_branch": "dev",
+      "pin_sites": [],
+      "lockfile": "package-lock.json",
+      "active": false,
+      "notes": "Pre-declared, INACTIVE. Phase 1A makes ZERO commits to omnidash (gate G1A.6), and a consumer is registered only when it actually takes the dependency \u2014 Phase 2. Registering it before then would reproduce Stall 2 exactly: a pipeline guarding a surface nothing uses. The empty pin_sites list keeps it out of the bump matrix. Landing verb verified 2026-08-24: `gh pr merge --squash --auto`, no merge queue on dev."
+    },
+    {
+      "name": "omniweb",
+      "owner": "OmniNode-ai",
+      "base_branch": "dev",
+      "pin_sites": [],
+      "lockfile": "package-lock.json",
+      "active": false,
+      "notes": "Pre-declared, INACTIVE. Activate under the D8 successor epic OMN-16881 (/app convergence), itself gated behind OMN-16838. omniweb also consumes the Tailwind v4 @theme artifact (D7). At activation, CONFIRM the package manager and lockfile name \u2014 omniweb uses pnpm workspaces, so `package-lock.json` inherited from this draft is probably wrong."
+    }
+  ]
+}

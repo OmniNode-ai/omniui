@@ -16,7 +16,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'eslint-rules/**/*.test.js'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'eslint-rules/**/*.test.js',
+      'scripts/**/*.test.js',
+    ],
     clearMocks: true,
     restoreMocks: true,
   },
