@@ -368,7 +368,20 @@ export function compileCatalog(capture: ThemeCatalogCapture): CompileResult {
   });
   artifacts.push({
     path: 'src/generated/tokens/index.json',
-    contents: `${JSON.stringify({ catalog_version: semver(capture.catalog.catalog_version), themes: index }, null, 2)}\n`,
+    contents: `${JSON.stringify(
+      {
+        // JSON carries no comments, so the banner every other artifact puts in
+        // a header goes in a field. Without it this file is the one generated
+        // artifact that cannot say so, and `npm run check:generated` — which
+        // scans by bytes, not by extension — would have to special-case it.
+        _generated:
+          'GENERATED FILE — DO NOT EDIT. Compiled by `npm run compile:tokens` (OMN-16886).',
+        catalog_version: semver(capture.catalog.catalog_version),
+        themes: index,
+      },
+      null,
+      2,
+    )}\n`,
   });
 
   artifacts.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));

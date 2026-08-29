@@ -60,6 +60,12 @@ jobs:
       - name: Check compiled token artifacts
         run: npm run check:tokens
 
+      # `generated-artifact-parity`'s complete half. ESLint 9 has no CSS
+      # language, so the compiled .css artifacts are invisible to the inline
+      # rule; this walks the tree by bytes, so extension is irrelevant.
+      - name: Check generated-artifact declarations
+        run: npm run check:generated
+
       - name: Build
         run: npm run build
 

@@ -12,6 +12,7 @@ Phase 1A of the omnidash component rework (epic OMN-16879). Phase 1A produces a 
 | Real build / test / lint / typecheck / Storybook workspace, and the theme binding | OMN-16885 |
 | Captured contract + projection fixtures, and the TS mirror freshness gate | OMN-16889 |
 | The token compile pipeline, deterministic and drift-gated | OMN-16886 |
+| Five scoped semantic-token lint rules, wired as CI | OMN-16888 |
 
 ## Working in it
 
@@ -27,6 +28,7 @@ npm run build-storybook
 npm run compile:tokens        # themes/ -> src/generated/tokens/**
 npm run check:tokens          # G1A.3: compiled artifacts vs a fresh compile
 npm run generate:onex-models  # schema/onex-models.json -> src/generated/onex-models.ts
+npm run check:generated       # every generated artifact is declared with a parity checker
 ```
 
 CI runs on GitHub-hosted runners in two jobs, `build` and `test`, and those are the two required status checks on `main`. **Do not rename them** — branch protection pins the contexts by name, so a rename removes the gate instead of failing. `lint` and `typecheck` run inside `build` for the same reason: a sibling job would be a check nobody is required to pass.
@@ -71,9 +73,28 @@ Three rules, each with a gate behind it:
 - **Never hand-edited.** `npm run check:tokens` compares every checked-in artifact to a fresh compile, byte for byte, and runs inside the required `build` job. Changing a token value is a new instance revision upstream, never an edit here. (**G1A.3**)
 - **Digest-carried, not digest-recomputed.** Each artifact carries the catalog's own `content_digest` for the instance it compiles. A consumer that recomputes its own digest can only ever agree with itself.
 
+## Token purity rules
+
+Five scoped rules ship as the local `onex` ESLint plugin (`eslint-rules/`). Each declares **what it inspects, what counts as a violation, and what is out of scope** — in the rule, not in a reviewer's head.
+
+| Rule | Catches | Deliberately does not catch |
+|---|---|---|
+| `onex/no-color-inline` | a colour literal on a CSS colour property, in a `className`, or as any unmistakably-colour value | `transparent`, `currentColor`, `var(--onex-*)`, chart/SVG paint (that is the next rule's) |
+| `onex/no-spacing-inline` | a raw `px`/`rem`/`em` on a layout-spacing property | `1px` hairlines, `0`, `auto`, percentages, viewport units, SVG coordinate systems |
+| `onex/no-unsourced-css` | a colour or spacing literal in hand-authored CSS | generated artifacts; geometry; non-CSS template literals |
+| `onex/svg-and-chart-inputs` | a colour literal on `fill`/`stroke`/`stopColor`, a series/axis/grid/threshold colour, a literal palette array | `viewBox`, `d`, `cx/cy/r`, `strokeWidth`, `transform` — coordinates are not design tokens |
+| `onex/generated-artifact-parity` | a generated artifact no parity checker covers, and a declared artifact that lost its banner | nothing |
+
+The first four **partition** the space rather than overlapping: one literal is reported by exactly one rule. A literal reported twice is noise, and noise is what earns a rule a blanket disable comment.
+
+Every rule is `error`; there is no warn-only mode. The single exemption is `// onex-token-exempt: <reason>` on the reported line or in the comment block directly above it, and **a reason is mandatory** — an allowlist entry nobody can read is one nobody can remove. The allowlist only shrinks.
+
+`generated-artifact-parity` has an honest split, stated in the rule itself: the **byte** comparison lives in `npm run check:tokens` (which recompiles from source) and in `src/generated/mirror-freshness.test.ts`. What the ESLint rule adds is coverage — an artifact nothing can re-derive can be hand-patched while every other rule passes. ESLint 9 has no CSS language, so `npm run check:generated` walks the whole tree by bytes and catches the compiled `.css` artifacts the rule cannot see.
+
 ## Layout
 
 ```text
+eslint-rules/   the local `onex` ESLint plugin: five scoped semantic-token rules
 themes/         the captured theme catalog — the token compiler's only input
 src/tokens/     the token compiler (pure; scripts/compile-tokens.ts does the I/O)
 src/generated/  generated artifacts: the ONEX TS mirror and the compiled tokens
