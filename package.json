@@ -38,7 +38,9 @@
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006 --no-open",
     "build-storybook": "storybook build",
-    "generate:onex-models": "tsx scripts/generate-onex-models.ts"
+    "generate:onex-models": "tsx scripts/generate-onex-models.ts",
+    "compile:tokens": "tsx scripts/compile-tokens.ts write",
+    "check:tokens": "tsx scripts/compile-tokens.ts check"
   },
   "peerDependencies": {
     "react": "^18.3.1 || ^19.0.0",

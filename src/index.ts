@@ -24,6 +24,7 @@ export {
   tokenRef,
   tokenVarName,
 } from './theme/css-variables.js';
+export { COMPILED_THEMES } from './generated/tokens/index.js';
 export {
   assertReportableTheme,
   type Theme,

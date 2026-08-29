@@ -26,6 +26,7 @@ export default tseslint.config(
       // by hand-style rules. Linting them would only ever produce pressure to
       // hand-edit an artifact that must never be hand-edited.
       'src/generated/onex-models.ts',
+      'src/generated/tokens/**',
     ],
   },
   js.configs.recommended,
