@@ -1,15 +1,19 @@
 # SPDX-FileCopyrightText: 2026 OmniNode.ai Inc.
 # SPDX-License-Identifier: MIT
 #
-# OMN-16879: build + test skeleton for the omniui component library.
+# OMN-16885 (Phase 1A.1): the real build + test surface for omniui.
 # Public repo -- GitHub-hosted runners only (project_public_repos_use_github_hosted_runners).
-# Do not add a self-hosted runner label to this workflow, and never rename
-# the job ids below -- branch protection will pin required status checks to
-# them once this run goes green.
+# Do not add a self-hosted runner label to this workflow.
 #
-# This is a scaffold-phase placeholder: `build`/`test` are no-ops until
-# Phase 1A (OMN-16879) lands the real package, token-compile pipeline, and
-# the scoped lint gates from plan section 2.3.
+# NEVER RENAME THE JOB IDS `build` AND `test`. Branch protection on `main`
+# pins its required status checks to exactly those two contexts; renaming a
+# job silently removes its gate rather than failing loudly.
+#
+# That pinning is also why lint and typecheck run INSIDE `build` rather than
+# as sibling jobs. A third job would be a check nobody is required to pass,
+# and Operating Rule #5 is explicit that detection without enforcement gets
+# ignored. Folding them into a required context makes them blocking on the
+# branch-protection surface that already exists.
 
 name: CI
 
@@ -25,6 +29,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  STORYBOOK_DISABLE_TELEMETRY: '1'
+
 jobs:
   build:
     name: build
@@ -35,12 +42,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Build
         run: npm run build
+
+      - name: Build Storybook
+        run: npm run build-storybook
 
   test:
     name: test
@@ -51,6 +68,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
