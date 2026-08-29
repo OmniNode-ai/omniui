@@ -93,10 +93,15 @@ export default tseslint.config(
     },
   },
   {
-    // This config file is itself JavaScript and is not part of the TypeScript
-    // program, so the type-aware rules have nothing to resolve against.
-    files: ['**/*.js'],
+    // Plain JavaScript in this repo is not part of the TypeScript program, so
+    // the type-aware rules have nothing to resolve against: the ESLint config
+    // itself, the lint rules ESLint loads directly, and the CI-only scripts
+    // that run under bare node.
+    files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: { process: 'readonly', console: 'readonly' },
+    },
   },
   {
     files: ['*.config.ts', '.storybook/**/*.ts'],

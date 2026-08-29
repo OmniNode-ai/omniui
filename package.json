@@ -41,7 +41,8 @@
     "generate:onex-models": "tsx scripts/generate-onex-models.ts",
     "compile:tokens": "tsx scripts/compile-tokens.ts write",
     "check:tokens": "tsx scripts/compile-tokens.ts check",
-    "check:generated": "tsx scripts/check-generated-artifacts.ts"
+    "check:generated": "tsx scripts/check-generated-artifacts.ts",
+    "verify:reachability": "bash scripts/verify-reachability.sh"
   },
   "peerDependencies": {
     "react": "^18.3.1 || ^19.0.0",
@@ -71,5 +72,8 @@
     "typescript-eslint": "8.18.1",
     "vite": "5.4.11",
     "vitest": "2.1.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

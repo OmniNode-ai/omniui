@@ -13,6 +13,7 @@ Phase 1A of the omnidash component rework (epic OMN-16879). Phase 1A produces a 
 | Captured contract + projection fixtures, and the TS mirror freshness gate | OMN-16889 |
 | The token compile pipeline, deterministic and drift-gated | OMN-16886 |
 | Five scoped semantic-token lint rules, wired as CI | OMN-16888 |
+| Plane-2 distribution pipeline — publish, pin-bump, reachability proof | OMN-16887 (blocked on an npm scope, see `docs/PLANE-2-DISTRIBUTION.md`) |
 
 ## Working in it
 
@@ -105,6 +106,16 @@ src/renderer/   (Phase 1B+) generic component types parameterized by widget cont
 ```
 
 `src/theme/theme-fixtures.ts` holds hand-built themes for tests and stories. They are **not** the catalog and are deliberately not exported from the package — a consumer that could import a fixture theme could ship one, and a shipped fixture is a token value with no catalog entry behind it.
+
+## Distribution
+
+The library reaches every consumer as an **immutable, exact-pinned, provenance-attested public npm package** (D2b). `docs/PLANE-2-DISTRIBUTION.md` has the full picture; the short version:
+
+- `.github/workflows/publish.yml` — release-triggered, asserts tag/version agreement and `publishConfig.access`, publishes with `--provenance` via OIDC, then reads integrity and shasum **back from the registry** rather than trusting the publish step's exit code.
+- `scripts/verify-reachability.sh` — **gate G1A.1**, six steps from a scratch directory outside this workspace: exact install, registry-not-link resolution, digest match, provenance verification, a **render from the bare package specifier**, and a rollback proven by digest.
+- `.github/workflows/downstream-pin-bump.yml` + `scripts/pin-bump-npm.mjs` + `docs/downstream-consumers.json` — exact-version pin bumps into registered consumers, with the lockfile regenerated and asserted, because a `package.json` rewrite without a lockfile regeneration is a pin that says one thing and installs another.
+
+**Not yet publishable, deliberately.** `package.json` keeps `"private": true` and `npm publish` refuses. The `@omninode` npm scope does not exist and no publish credential is provisioned; both are operator actions. That refusal is the gate, not a bug — a G1A.1 claimed green on a dry run would be the failure the gate exists to catch.
 
 ## Reference
 

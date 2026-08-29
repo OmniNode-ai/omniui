@@ -1,0 +1,217 @@
+# SPDX-FileCopyrightText: 2026 OmniNode.ai Inc.
+# SPDX-License-Identifier: MIT
+#
+# Ticket: OMN-16887 (Phase 1A.3). Epic OMN-16879.
+#
+# ADAPTED FROM omnibase_core/.github/workflows/publish-downstream-pin-bump.yml
+# (OMN-9050), read 2026-08-28. Three deliberate divergences from that original:
+#
+#   1. omnibase_core pins downstream by GIT SHA rewritten with a regex over
+#      workflow files. omniui pins by EXACT NPM VERSION in package.json, so the
+#      bump edits a dependency entry and then regenerates the lockfile. Editing
+#      package.json without regenerating the lockfile yields a pin that says one
+#      thing and installs another -- worse than not bumping.
+#   2. Runners are hardcoded ubuntu-latest. omniui is public
+#      (project_public_repos_use_github_hosted_runners). Do NOT port the
+#      OMNI_TRUSTED_CI_RUNS_ON_JSON selector across.
+#   3. Triggered on release publish, not push-to-main, matching publish.yml's
+#      release-triggered model.
+#   4. The manifest is JSON and the rewriter is Node. The staged draft used YAML
+#      + a Python script; this repo has neither a Python toolchain nor a YAML
+#      parser, and adding both to a public component library so one CI step can
+#      read a manifest is a dependency bought for nothing.
+#
+# Failures on one consumer must NOT cascade -- each matrix leg is
+# continue-on-error so a bad pin surface on one repo does not block the rest.
+#
+# NOTE (reference_app_token_pushes_are_ci_suppressed): pushes made with an App
+# installation token do not trigger downstream workflows. Auto-merge is enabled
+# explicitly below rather than assuming CI fires on the push.
+
+name: Publish downstream pin bumps
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      override_version:
+        description: "Version to pin (defaults to the release tag, minus the leading v)."
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: downstream-pin-bump-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  enumerate-consumers:
+    name: Enumerate consumers
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.emit.outputs.repos }}
+      new_version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.override_version }}" ]; then
+            v="${{ inputs.override_version }}"
+          else
+            v="${GITHUB_REF_NAME#v}"
+          fi
+          # Exact pins only. A range defeats the entire point of D2b.
+          if ! printf '%s' "$v" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::Refusing to pin non-exact version '${v}'"
+            exit 1
+          fi
+          echo "version=${v}" >> "$GITHUB_OUTPUT"
+
+      - name: Emit matrix from manifest
+        id: emit
+        run: |
+          set -euo pipefail
+          repos="$(node -p "JSON.stringify(require('./docs/downstream-consumers.json').repos.filter((r) => r.pin_sites.length > 0).map((r) => r.name))")"
+          echo "repos=${repos}" >> "$GITHUB_OUTPUT"
+          echo "consumers with active pin sites: ${repos}"
+
+  bump:
+    name: "Bump: ${{ matrix.repo }}"
+    needs: enumerate-consumers
+    if: needs.enumerate-consumers.outputs.repos != '[]'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.enumerate-consumers.outputs.repos) }}
+    env:
+      NEW_VERSION: ${{ needs.enumerate-consumers.outputs.new_version }}
+      REPO: ${{ matrix.repo }}
+    steps:
+      - name: Checkout omniui (manifest + script)
+        uses: actions/checkout@v7
+        with:
+          path: omniui
+
+      # Re-verify this action pin against omnibase_core at drop-in time.
+      - name: Mint onexbot-occ-writer app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.ONEXBOT_OCC_APP_ID }}
+          private-key: ${{ secrets.ONEXBOT_OCC_PRIVATE_KEY }}
+          owner: OmniNode-ai
+          repositories: ${{ matrix.repo }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Checkout consumer (${{ matrix.repo }})
+        uses: actions/checkout@v7
+        with:
+          repository: OmniNode-ai/${{ matrix.repo }}
+          token: ${{ steps.app-token.outputs.token }}
+          path: downstream
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Rewrite pins in package.json
+        run: |
+          node omniui/scripts/pin-bump-npm.mjs \
+            --manifest omniui/docs/downstream-consumers.json \
+            --repo "$REPO" \
+            --repo-root downstream \
+            --new-version "$NEW_VERSION"
+
+      # The lockfile carries the integrity hash. If it does not move with the
+      # version, the pin is cosmetic.
+      - name: Regenerate lockfile
+        working-directory: downstream
+        run: npm install --package-lock-only
+
+      - name: Verify the lockfile actually resolved the new version
+        working-directory: downstream
+        run: |
+          set -euo pipefail
+          lockfile="$(node -p "require('../omniui/docs/downstream-consumers.json').repos.find((r) => r.name === process.env.REPO).lockfile")"
+          if ! grep -q "\"version\": \"${NEW_VERSION}\"" "$lockfile"; then
+            echo "::error::Lockfile does not contain ${NEW_VERSION} after regeneration -- pin would be cosmetic."
+            exit 1
+          fi
+
+      - name: Detect changes
+        id: diff
+        working-directory: downstream
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit + push branch
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: downstream
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          BRANCH="bot/bump-omniui-pin-${NEW_VERSION}"
+          git config user.name "onex-pin-bump-bot"
+          git config user.email "bot@omninode.ai"
+          git checkout -b "$BRANCH"
+          git add -A
+          git commit -m "chore(ci): bump omniui pin to ${NEW_VERSION} [bot] [OMN-16887]"
+          git push -u origin "$BRANCH" --force-with-lease
+
+      - name: Open PR + enable auto-merge
+        if: steps.diff.outputs.changed == 'true'
+        working-directory: downstream
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          BRANCH="bot/bump-omniui-pin-${NEW_VERSION}"
+          BASE_BRANCH="$(node -p "require('../omniui/docs/downstream-consumers.json').repos.find((r) => r.name === process.env.REPO).base_branch")"
+          # Every repo in the registry is squash-only, and the base branch comes
+          # from the manifest rather than being assumed. Verify the consumer's
+          # landing verb at activation (omni_home/CLAUDE.md Merge Queue Policy)
+          # rather than assuming --auto is accepted: it is repo-level config and
+          # it has drifted before.
+          {
+            printf '%s\n' "Automated exact-version pin bump to \`omniui@${NEW_VERSION}\`, with the lockfile regenerated so the integrity hash moves with the version."
+            printf '\n%s\n' "Opened by omniui's downstream-pin-bump workflow (D2b). Epic OMN-16879, ticket OMN-16887."
+            printf '\n%s\n' "The receipt gate resolves against OMN-16887, which carries this workflow's own evidence. No bypass token is emitted: Operating Rule #10 rejects every such form, and a bot is exactly the actor that should not be minting bypasses."
+          } > /tmp/pin-bump-body.md
+          gh pr create \
+            --repo "OmniNode-ai/${REPO}" \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH" \
+            --title "chore(ci): bump omniui pin to ${NEW_VERSION} [bot] [OMN-16887]" \
+            --body-file /tmp/pin-bump-body.md
+          gh pr merge --squash --auto --repo "OmniNode-ai/${REPO}" "$BRANCH" || \
+            echo "::warning::auto-merge not enabled for ${REPO}; land manually"
+
+  summary:
+    name: Summary
+    needs: [enumerate-consumers, bump]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report
+        run: |
+          echo "### omniui pin bump to \`${{ needs.enumerate-consumers.outputs.new_version }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Consumers: \`${{ needs.enumerate-consumers.outputs.repos }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Legs are \`continue-on-error\`; check each matrix leg above for failures." >> "$GITHUB_STEP_SUMMARY"
