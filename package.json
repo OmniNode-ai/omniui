@@ -4,9 +4,64 @@
   "private": true,
   "description": "OmniNode web component library and renderer.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OmniNode-ai/omniui.git"
+  },
   "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "echo 'no build target yet -- Phase 1A (OMN-16879) scaffolds the real build' && exit 0",
-    "test": "echo 'no tests yet -- Phase 1A (OMN-16879) scaffolds the real test suite' && exit 0"
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.17.0",
+    "@storybook/addon-essentials": "8.6.14",
+    "@storybook/react": "8.6.14",
+    "@storybook/react-vite": "8.6.14",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.1.0",
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "@vitejs/plugin-react": "4.3.4",
+    "eslint": "9.17.0",
+    "jsdom": "25.0.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "storybook": "8.6.14",
+    "typescript": "5.7.2",
+    "typescript-eslint": "8.18.1",
+    "vite": "5.4.11",
+    "vitest": "2.1.8"
   }
 }
