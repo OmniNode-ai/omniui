@@ -16,7 +16,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { ThemeProvider, useTheme } from './ThemeProvider.js';
 import { sortedTokenNames, tokenRef, tokenVarName } from './css-variables.js';
-import { FIXTURE_THEME_PAPER, FIXTURE_THEME_SLATE } from './theme-fixtures.js';
+import { fixtureTheme } from '../fixtures/index.js';
 
 const COLOR_VALUE = /^(#|rgb|hsl|oklch)/i;
 
@@ -95,17 +95,30 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Slate: Story = {
+// The three published themes, read out of the captured catalog (OMN-16889).
+// Storybook shows what `omnibase_core` actually publishes, not a hand-kept
+// approximation of it — so a theme value that changes upstream changes here
+// with a fixture recapture and nothing else.
+
+export const Dark: Story = {
   render: () => (
-    <ThemeProvider theme={FIXTURE_THEME_SLATE}>
+    <ThemeProvider theme={fixtureTheme('onex.theme.dark')}>
       <ThemeReference />
     </ThemeProvider>
   ),
 };
 
-export const Paper: Story = {
+export const Light: Story = {
   render: () => (
-    <ThemeProvider theme={FIXTURE_THEME_PAPER}>
+    <ThemeProvider theme={fixtureTheme('onex.theme.light')}>
+      <ThemeReference />
+    </ThemeProvider>
+  ),
+};
+
+export const Warm: Story = {
+  render: () => (
+    <ThemeProvider theme={fixtureTheme('onex.theme.warm')}>
       <ThemeReference />
     </ThemeProvider>
   ),

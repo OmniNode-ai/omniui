@@ -1,0 +1,2729 @@
+{
+  "$id": "https://omninode.ai/schemas/omnidash-v2.json",
+  "$defs": {
+    "EnumDashboardWidgetType": {
+      "enum": [
+        "tile",
+        "chart",
+        "table",
+        "list",
+        "scalar"
+      ],
+      "title": "EnumDashboardWidgetType",
+      "type": "string"
+    },
+    "ModelDashboardHint": {
+      "additionalProperties": false,
+      "properties": {
+        "widget_type": {
+          "$ref": "#/$defs/EnumDashboardWidgetType",
+          "description": "Preferred widget shape."
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Human-readable label.",
+          "title": "Label"
+        },
+        "group": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Grouping key for sidebar organization.",
+          "title": "Group"
+        },
+        "priority": {
+          "default": 100,
+          "description": "Ordering weight; lower renders first.",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "time_series": {
+          "default": false,
+          "description": "Treat as time-series if True.",
+          "title": "Time Series",
+          "type": "boolean"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Units annotation (e.g. 'usd', 'ms').",
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "widget_type"
+      ],
+      "title": "ModelDashboardHint",
+      "type": "object"
+    },
+    "ModelIdempotencyConfig": {
+      "additionalProperties": false,
+      "description": "Idempotency configuration for projector event processing.\n\nIdempotency ensures that processing the same event multiple times\nproduces the same result. This is critical for:\n    - Safe retries after failures\n    - Event replay during recovery\n    - Exactly-once processing semantics\n\nAttributes:\n    enabled: Whether idempotency checking is enabled. When True,\n        the projector tracks processed event keys and skips\n        duplicates. Defaults to True.\n    key: The event attribute to use as the idempotency key.\n        This field uniquely identifies an event for deduplication.\n        Common values: \"sequence_number\", \"event_id\", \"correlation_id\".\n\nExamples:\n    Basic configuration with sequence number:\n\n    >>> config = ModelIdempotencyConfig(key=\"sequence_number\")\n    >>> config.enabled\n    True\n    >>> config.key\n    'sequence_number'\n\n    Disabled idempotency:\n\n    >>> config = ModelIdempotencyConfig(enabled=False, key=\"event_id\")\n    >>> config.enabled\n    False\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Whether idempotency checking is enabled",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "key": {
+          "description": "Event attribute to use as the idempotency key (e.g., 'sequence_number', 'event_id')",
+          "title": "Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "title": "ModelIdempotencyConfig",
+      "type": "object"
+    },
+    "ModelPartialUpdateOperation": {
+      "additionalProperties": false,
+      "description": "Partial update operation definition for projector contracts.\n\nDefines a named partial update operation that targets specific columns\nand is triggered by a specific event. Partial updates are more efficient\nthan full upserts when only a subset of columns needs to be updated.\n\nPartial updates are particularly useful for:\n    - High-frequency updates (e.g., heartbeats) that should not trigger\n      full column recalculation.\n    - State transitions where only the state column changes.\n    - Timeout markers that set a single timestamp column.\n\nAttributes:\n    name: Unique identifier for the partial update operation within the\n        projector contract. Used for logging, metrics, and debugging.\n    columns: List of column names to update. Must contain at least one\n        column. Column names must reference columns defined in the\n        projection schema (validated at contract level).\n    trigger_event: Event name that triggers this partial update. Must\n        match the event naming pattern (lowercase.segments.vN).\n    skip_idempotency: Whether to skip idempotency checking for this\n        operation. Defaults to False. Set to True for operations that\n        are inherently idempotent by design (e.g., state transitions\n        where the new state is deterministic).\n    condition: Optional SQL condition for when to apply the update.\n        Use for conditional updates like \"only if not already set\".\n        Example: ``\"ack_timeout_emitted_at IS NULL\"``.\n\nExamples:\n    Create a heartbeat update operation:\n\n    >>> op = ModelPartialUpdateOperation(\n    ...     name=\"heartbeat\",\n    ...     columns=[\"last_heartbeat_at\", \"liveness_deadline\"],\n    ...     trigger_event=\"node.heartbeat.v1\",\n    ... )\n\n    Create a state transition operation with idempotency skipped:\n\n    >>> op = ModelPartialUpdateOperation(\n    ...     name=\"state_transition\",\n    ...     columns=[\"current_state\", \"updated_at\"],\n    ...     trigger_event=\"node.state.changed.v1\",\n    ...     skip_idempotency=True,\n    ... )\n\n    Create a conditional timeout marker:\n\n    >>> op = ModelPartialUpdateOperation(\n    ...     name=\"ack_timeout_marker\",\n    ...     columns=[\"ack_timeout_emitted_at\"],\n    ...     trigger_event=\"node.ack.timeout.v1\",\n    ...     condition=\"ack_timeout_emitted_at IS NULL\",\n    ... )\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.\n\nSee Also:\n    - :class:`ModelProjectorContract`: Main contract that contains partial updates\n    - :class:`ModelProjectorBehavior`: Main behavior configuration\n    - :class:`ModelIdempotencyConfig`: Idempotency configuration",
+      "properties": {
+        "name": {
+          "description": "Unique identifier for the partial update operation. Used for logging, metrics, and debugging.",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "columns": {
+          "description": "List of column names to update. Must contain at least one column. Column names must reference columns defined in the projection schema.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "trigger_event": {
+          "description": "Event name that triggers this partial update. Must match pattern: lowercase.segments.vN (e.g., 'node.heartbeat.v1').",
+          "title": "Trigger Event",
+          "type": "string"
+        },
+        "skip_idempotency": {
+          "default": false,
+          "description": "Whether to skip idempotency checking for this operation. Set to True for inherently idempotent operations like state transitions.",
+          "title": "Skip Idempotency",
+          "type": "boolean"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional SQL condition for when to apply the update. Example: 'ack_timeout_emitted_at IS NULL' for conditional marker setting.",
+          "title": "Condition"
+        }
+      },
+      "required": [
+        "name",
+        "columns",
+        "trigger_event"
+      ],
+      "title": "ModelPartialUpdateOperation",
+      "type": "object"
+    },
+    "ModelProjectorBehavior": {
+      "additionalProperties": false,
+      "description": "Projection behavior configuration.\n\nDetermines how the projector handles data during projection operations.\nThe mode controls insert/update semantics while idempotency configuration\nenables exactly-once processing guarantees.\n\nAttributes:\n    mode: The projection mode. Options are:\n        - \"upsert\": Insert or update based on upsert_key (default)\n        - \"insert_only\": Insert only, skip existing records\n        - \"append\": Always append without deduplication\n    upsert_key: The column name to use for upsert conflict detection.\n        Only applicable when ``mode='upsert'``. At runtime, if this is\n        ``None``, the projector will fall back to using the\n        ``projection_schema.primary_key`` as the conflict detection key.\n        While this fallback behavior is valid, explicit specification is\n        recommended for clarity and to avoid the warning that is logged\n        when the default is used. Ignored when ``mode='insert_only'``\n        or ``mode='append'``.\n    idempotency: Optional idempotency configuration for exactly-once\n        processing. When enabled, tracks processed events to prevent\n        duplicate processing on retries or replay.\n\nExamples:\n    Default upsert behavior:\n\n    >>> behavior = ModelProjectorBehavior()\n    >>> behavior.mode\n    'upsert'\n\n    Upsert with node_id as conflict key:\n\n    >>> behavior = ModelProjectorBehavior(mode=\"upsert\", upsert_key=\"node_id\")\n    >>> behavior.upsert_key\n    'node_id'\n\n    Append mode for event logs:\n\n    >>> behavior = ModelProjectorBehavior(mode=\"append\")\n    >>> behavior.mode\n    'append'\n\n    With idempotency enabled:\n\n    >>> from omnibase_core.models.projectors import ModelIdempotencyConfig\n    >>> idempotency = ModelIdempotencyConfig(enabled=True, key=\"event_id\")\n    >>> behavior = ModelProjectorBehavior(mode=\"upsert\", idempotency=idempotency)\n    >>> behavior.idempotency.enabled\n    True\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.",
+      "properties": {
+        "mode": {
+          "default": "upsert",
+          "description": "Projection mode: upsert, insert_only, or append",
+          "enum": [
+            "upsert",
+            "insert_only",
+            "append"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "upsert_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column name(s) to use for upsert conflict detection. Can be a single column name (str) or a list of column names for composite keys. Only applicable when mode='upsert'. When None and mode='upsert', the projector runtime falls back to using projection_schema.primary_key as the conflict detection key; a warning is logged in this case to encourage explicit specification. Explicit specification is recommended for clarity and self-documenting configuration. Ignored when mode='insert_only' or 'append'.",
+          "title": "Upsert Key"
+        },
+        "idempotency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelIdempotencyConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Idempotency configuration for exactly-once processing"
+        }
+      },
+      "title": "ModelProjectorBehavior",
+      "type": "object"
+    },
+    "ModelProjectorColumn": {
+      "additionalProperties": false,
+      "description": "Column definition with event field mapping.\n\nDefines how a column in a projection table is populated from event data.\nEach column specifies its name, SQL type, and the source path for data\nextraction.\n\nAttributes:\n    name: Column name in the projection table. Must be a valid SQL column\n        identifier.\n    type: SQL column type as a string (e.g., \"UUID\", \"TEXT\", \"JSONB\",\n        \"TIMESTAMPTZ\", \"INTEGER\", \"BOOLEAN\"). String type allows maximum\n        extensibility for different database backends.\n    source: Path to extract data from the event. Supports dotted notation\n        for nested access (e.g., \"event.payload.node_name\",\n        \"event.metadata.event_id\", \"envelope.sequence_number\").\n    on_event: Optional event type filter. When specified, this column is\n        only updated when processing events of this specific type.\n        Use for columns that should only change on certain events.\n    default: Optional default value as a string. Used when the source\n        path yields no value or the column is created before any\n        relevant event is processed.\n\nExamples:\n    Create a simple text column:\n\n    >>> column = ModelProjectorColumn(\n    ...     name=\"node_name\",\n    ...     type=\"TEXT\",\n    ...     source=\"event.payload.node_name\",\n    ... )\n\n    Create a column with conditional update:\n\n    >>> status_col = ModelProjectorColumn(\n    ...     name=\"status\",\n    ...     type=\"TEXT\",\n    ...     source=\"event.payload.status\",\n    ...     on_event=\"node.status.changed.v1\",\n    ...     default=\"UNKNOWN\",\n    ... )\n\n    Create a timestamp column:\n\n    >>> timestamp_col = ModelProjectorColumn(\n    ...     name=\"created_at\",\n    ...     type=\"TIMESTAMPTZ\",\n    ...     source=\"event.payload.created_at\",\n    ... )\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.",
+      "properties": {
+        "name": {
+          "description": "Column name in the projection table",
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "description": "SQL column type (e.g., 'UUID', 'TEXT', 'JSONB', 'TIMESTAMPTZ', 'INTEGER', 'BOOLEAN'). String type for extensibility.",
+          "title": "Type",
+          "type": "string"
+        },
+        "source": {
+          "description": "Path to extract data from the event. Supports dotted notation (e.g., 'event.payload.node_name', 'envelope.sequence_number').",
+          "title": "Source",
+          "type": "string"
+        },
+        "on_event": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional event type filter. When specified, column is only updated when processing events of this specific type.",
+          "title": "On Event"
+        },
+        "default": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional default value. Used when source path yields no value or column is created before any relevant event.",
+          "title": "Default"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "source"
+      ],
+      "title": "ModelProjectorColumn",
+      "type": "object"
+    },
+    "ModelProjectorIndex": {
+      "additionalProperties": false,
+      "description": "Index definition for projection table.\n\nDefines a database index to be created on a projection table. Supports\ncommon PostgreSQL index types: btree (default), gin, and hash.\n\nCore Concepts:\n- **name**: Optional index name. If not provided, the database or\n  materialization layer will auto-generate one.\n- **columns**: Required list of columns to index. Must contain at least\n  one column name.\n- **type**: Index type - btree (default, B-tree), gin (GIN for arrays/JSONB),\n  or hash (hash index).\n- **unique**: Whether to enforce unique constraint on indexed columns.\n\nExample:\n    ```python\n    # Simple btree index on user_id\n    index = ModelProjectorIndex(columns=[\"user_id\"])\n\n    # Unique composite index with explicit name\n    index = ModelProjectorIndex(\n        name=\"idx_user_created\",\n        columns=[\"user_id\", \"created_at\"],\n        type=\"btree\",\n        unique=True,\n    )\n\n    # GIN index for JSONB/array column\n    index = ModelProjectorIndex(\n        columns=[\"tags\"],\n        type=\"gin\",\n    )\n    ```\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.\n\n    **ONEX v2.0 Compliance**:\n        - Suffix-based naming: ModelProjectorIndex\n        - Pydantic v2 with ConfigDict\n        - Frozen/immutable after creation\n        - Extra fields rejected (strict validation)",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Index name. Auto-generated if not provided.",
+          "title": "Name"
+        },
+        "columns": {
+          "description": "Columns to index. Must contain at least one column.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "type": {
+          "default": "btree",
+          "description": "Index type: btree (default), gin, or hash.",
+          "enum": [
+            "btree",
+            "gin",
+            "hash"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "unique": {
+          "default": false,
+          "description": "Whether to enforce unique constraint on indexed columns.",
+          "title": "Unique",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "columns"
+      ],
+      "title": "ModelProjectorIndex",
+      "type": "object"
+    },
+    "ModelProjectorSchema": {
+      "additionalProperties": false,
+      "description": "Database schema for projection.\n\nDefines the complete schema for a projection table, including the table name,\nprimary key, column definitions, optional indexes, and optional version for\nmigration tracking.\n\nAttributes:\n    table: The target database table name. Must be a valid SQL identifier.\n    primary_key: The column name to use as the primary key. Must correspond\n        to one of the defined columns.\n    columns: List of column definitions. Must contain at least one column.\n        Each column specifies how event data maps to the projection table.\n    indexes: Optional list of index definitions. Defaults to empty list.\n        Indexes can improve query performance on frequently accessed columns.\n    version: Optional schema version using semantic versioning. Useful for\n        tracking schema migrations and compatibility.\n\nExamples:\n    Create a minimal schema:\n\n    >>> from omnibase_core.models.projectors import (\n    ...     ModelProjectorColumn,\n    ...     ModelProjectorSchema,\n    ... )\n    >>> column = ModelProjectorColumn(\n    ...     name=\"node_id\",\n    ...     type=\"UUID\",\n    ...     source=\"event.payload.node_id\",\n    ... )\n    >>> schema = ModelProjectorSchema(\n    ...     table=\"nodes\",\n    ...     primary_key=\"node_id\",\n    ...     columns=[column],\n    ... )\n\n    Create a schema with indexes and version:\n\n    >>> from omnibase_core.models.projectors import ModelProjectorIndex\n    >>> from omnibase_core.models.primitives.model_semver import ModelSemVer\n    >>> schema = ModelProjectorSchema(\n    ...     table=\"nodes\",\n    ...     primary_key=\"node_id\",\n    ...     columns=[\n    ...         ModelProjectorColumn(\n    ...             name=\"node_id\",\n    ...             type=\"UUID\",\n    ...             source=\"event.payload.node_id\",\n    ...         ),\n    ...         ModelProjectorColumn(\n    ...             name=\"status\",\n    ...             type=\"TEXT\",\n    ...             source=\"event.payload.status\",\n    ...         ),\n    ...     ],\n    ...     indexes=[ModelProjectorIndex(columns=[\"status\"])],\n    ...     version=ModelSemVer(major=1, minor=0, patch=0),\n    ... )\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.",
+      "properties": {
+        "table": {
+          "description": "Target database table name for the projection",
+          "title": "Table",
+          "type": "string"
+        },
+        "primary_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "Column name(s) to use as the primary key. Can be a single column name (str) or a list of column names for composite primary keys.",
+          "title": "Primary Key"
+        },
+        "columns": {
+          "description": "List of column definitions. Must contain at least one column.",
+          "items": {
+            "$ref": "#/$defs/ModelProjectorColumn"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        },
+        "indexes": {
+          "default": [],
+          "description": "Optional list of index definitions for the projection table. Defaults to an empty list if not specified.",
+          "items": {
+            "$ref": "#/$defs/ModelProjectorIndex"
+          },
+          "title": "Indexes",
+          "type": "array"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelSemVer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional schema version for migration tracking"
+        }
+      },
+      "required": [
+        "table",
+        "primary_key",
+        "columns"
+      ],
+      "title": "ModelProjectorSchema",
+      "type": "object"
+    },
+    "ModelSemVer": {
+      "description": "Semantic version model following SemVer 2.0.0 specification.\n\nFull SemVer format: MAJOR.MINOR.PATCH[-prerelease][+build]\n\nPreferred usage (structured format):\n    >>> version = ModelSemVer(major=0, minor=4, patch=0)\n    >>> assert str(version) == \"0.4.0\"\n    >>> assert version.major == 0 and version.minor == 4\n\nWith prerelease and build metadata:\n    >>> version = ModelSemVer(major=1, minor=0, patch=0, prerelease=(\"alpha\", 1))\n    >>> assert str(version) == \"1.0.0-alpha.1\"\n    >>> assert version.is_prerelease() is True\n\nFor parsing external input, use the parse() class method:\n    >>> version = ModelSemVer.parse(\"1.0.0-alpha.1+build.123\")\n    >>> assert version.prerelease == (\"alpha\", 1)\n    >>> assert version.build == (\"build\", \"123\")\n\nPrecedence rules (per SemVer spec):\n    - prerelease < no prerelease (1.0.0-alpha < 1.0.0)\n    - Numeric identifiers < alphanumeric (1.0.0-1 < 1.0.0-alpha)\n    - Build metadata is IGNORED for precedence\n\nNote:\n    String version literals like \"1.0.0\" are deprecated.\n    Always use structured format: ModelSemVer(major=X, minor=Y, patch=Z)\n\n    This model is frozen (immutable) and hashable, suitable for use as dict\n    keys or in sets. Hash is based on major, minor, patch, and prerelease;\n    build metadata is excluded (see __hash__ docstring for details).",
+      "properties": {
+        "major": {
+          "description": "Major version number",
+          "minimum": 0,
+          "title": "Major",
+          "type": "integer"
+        },
+        "minor": {
+          "description": "Minor version number",
+          "minimum": 0,
+          "title": "Minor",
+          "type": "integer"
+        },
+        "patch": {
+          "description": "Patch version number",
+          "minimum": 0,
+          "title": "Patch",
+          "type": "integer"
+        },
+        "prerelease": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Prerelease identifiers (dot-separated in string form)",
+          "title": "Prerelease"
+        },
+        "build": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Build metadata identifiers (ignored for precedence)",
+          "title": "Build"
+        }
+      },
+      "required": [
+        "major",
+        "minor",
+        "patch"
+      ],
+      "title": "ModelSemVer",
+      "type": "object"
+    },
+    "ModelProjectorContract": {
+      "additionalProperties": false,
+      "description": "Declarative projector contract definition.\n\nDefines the complete contract for a projector including its identity,\nevent subscriptions, schema definition, and behavior configuration.\n\nProjectors consume ModelEventEnvelope streams to materialize read-optimized\nviews of aggregate state. They never emit events, intents, or projections\nthemselves.\n\nAttributes:\n    projector_kind: Type of projector. Currently only \"materialized_view\"\n        is supported. Extensible for future projector types.\n    projector_id: Unique identifier for the projector. Used for registration\n        and routing.\n    name: Human-readable name for the projector.\n    version: Contract version string (e.g., \"1.0.0\"). Used for version\n        validation, compatibility checking, and migration tracking.\n    aggregate_type: Semantic string identifier for the aggregate type this\n        projector handles.\n    consumed_events: List of event names this projector subscribes to.\n        Each event name must match the pattern: lowercase.segments.vN\n    projection_schema: Database schema definition including table, columns,\n        and indexes. Named ``projection_schema`` to avoid conflict with\n        Pydantic's ``BaseModel.schema`` method.\n    behavior: Projection behavior configuration including mode and idempotency.\n\nExamples:\n    Create a node status projector:\n\n    >>> from omnibase_core.models.projectors import (\n    ...     ModelProjectorBehavior,\n    ...     ModelProjectorColumn,\n    ...     ModelProjectorContract,\n    ...     ModelProjectorSchema,\n    ... )\n    >>> column = ModelProjectorColumn(\n    ...     name=\"node_id\",\n    ...     type=\"UUID\",\n    ...     source=\"event.payload.node_id\",\n    ... )\n    >>> schema = ModelProjectorSchema(\n    ...     table=\"nodes\",\n    ...     primary_key=\"node_id\",\n    ...     columns=[column],\n    ... )\n    >>> behavior = ModelProjectorBehavior(mode=\"upsert\")\n    >>> contract = ModelProjectorContract(\n    ...     projector_kind=\"materialized_view\",\n    ...     projector_id=\"node-projector\",\n    ...     name=\"Node Projector\",\n    ...     version=\"1.0.0\",\n    ...     aggregate_type=\"node\",\n    ...     consumed_events=[\"node.created.v1\"],\n    ...     projection_schema=schema,\n    ...     behavior=behavior,\n    ... )\n\nNote:\n    **Why from_attributes=True is Required**\n\n    This model uses ``from_attributes=True`` in its ConfigDict to ensure\n    pytest-xdist compatibility. When running tests with pytest-xdist,\n    each worker process imports the class independently, creating separate\n    class objects. The ``from_attributes=True`` flag enables Pydantic's\n    \"duck typing\" mode, allowing fixtures from one worker to be validated\n    in another.\n\n    **Thread Safety**: This model is frozen (immutable) after creation,\n    making it thread-safe for concurrent read access.\n\nSee Also:\n    - :class:`ModelProjectorSchema`: Schema definition for projection tables\n    - :class:`ModelProjectorBehavior`: Behavior configuration for projectors\n    - :class:`ModelIdempotencyConfig`: Idempotency configuration",
+      "properties": {
+        "projector_kind": {
+          "const": "materialized_view",
+          "description": "Type of projector. Currently only 'materialized_view' is supported.",
+          "title": "Projector Kind",
+          "type": "string"
+        },
+        "projector_id": {
+          "description": "Unique identifier for the projector",
+          "minLength": 1,
+          "title": "Projector Id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Human-readable name for the projector",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "description": "Contract version string (e.g., '1.0.0')",
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "aggregate_type": {
+          "description": "Semantic identifier for the aggregate type this projector handles",
+          "minLength": 1,
+          "title": "Aggregate Type",
+          "type": "string"
+        },
+        "consumed_events": {
+          "description": "List of event names to consume. Must contain at least one event. Each event name must match pattern: lowercase.segments.vN",
+          "items": {
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*\\.v[0-9]+$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Consumed Events",
+          "type": "array"
+        },
+        "projection_schema": {
+          "$ref": "#/$defs/ModelProjectorSchema",
+          "description": "Database schema definition for the projection"
+        },
+        "behavior": {
+          "$ref": "#/$defs/ModelProjectorBehavior",
+          "description": "Projection behavior configuration"
+        },
+        "partial_updates": {
+          "default": [],
+          "description": "Optional list of partial update operations. Each operation defines a subset of columns to update when triggered by a specific event. Partial updates are more efficient than full upserts for high-frequency updates like heartbeats or state transitions.",
+          "items": {
+            "$ref": "#/$defs/ModelPartialUpdateOperation"
+          },
+          "title": "Partial Updates",
+          "type": "array"
+        },
+        "dashboard": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelDashboardHint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional presentation hint for dashboard rendering."
+        }
+      },
+      "required": [
+        "projector_kind",
+        "projector_id",
+        "name",
+        "version",
+        "aggregate_type",
+        "consumed_events",
+        "projection_schema",
+        "behavior"
+      ],
+      "title": "ModelProjectorContract",
+      "type": "object"
+    },
+    "ModelStateTransitionNotification": {
+      "additionalProperties": false,
+      "description": "Notification model for state transitions in ONEX aggregates.\n\nEmitted after a reducer commits a state transition, enabling orchestrators\nto observe and react to state changes without tight coupling.\n\nThis model provides all necessary context for an orchestrator to understand:\n- What aggregate changed (aggregate_type, aggregate_id)\n- What the transition was (from_state, to_state)\n- Version information for ordering and idempotency (projection_version)\n- Correlation and causation for distributed tracing\n- Optional bounded view of workflow state (workflow_view)\n\nAttributes:\n    aggregate_type: The type of aggregate (e.g., \"registration\", \"intelligence\").\n        Used for routing notifications to interested orchestrators.\n    aggregate_id: Unique identifier of the aggregate instance.\n    from_state: The FSM state before the transition.\n    to_state: The FSM state after the transition.\n    projection_version: Monotonically increasing version of the projection.\n        Used for ordering and detecting missed notifications.\n    correlation_id: Correlation ID linking this to the original request.\n    causation_id: ID of the event that caused this transition.\n    timestamp: When the transition was committed (UTC recommended).\n    projection_hash: Optional hash of the full projection state.\n        Enables optimistic concurrency and integrity verification.\n    reducer_version: Optional version of the reducer that processed the transition.\n        Useful for debugging and compatibility tracking.\n    workflow_view: Optional bounded view of state for orchestrator use.\n        Contains only the fields needed for workflow decisions.\n\nExample:\n    >>> from datetime import datetime, UTC\n    >>> from uuid import uuid4\n    >>>\n    >>> # Basic notification\n    >>> notification = ModelStateTransitionNotification(\n    ...     aggregate_type=\"registration\",\n    ...     aggregate_id=uuid4(),\n    ...     from_state=\"pending\",\n    ...     to_state=\"active\",\n    ...     projection_version=1,\n    ...     correlation_id=uuid4(),\n    ...     causation_id=uuid4(),\n    ...     timestamp=datetime.now(UTC),\n    ... )\n    >>>\n    >>> # Notification with workflow view\n    >>> notification_with_view = ModelStateTransitionNotification(\n    ...     aggregate_type=\"intelligence\",\n    ...     aggregate_id=uuid4(),\n    ...     from_state=\"analyzing\",\n    ...     to_state=\"completed\",\n    ...     projection_version=5,\n    ...     correlation_id=uuid4(),\n    ...     causation_id=uuid4(),\n    ...     timestamp=datetime.now(UTC),\n    ...     projection_hash=\"sha256:abc123\",\n    ...     reducer_version=ModelSemVer(major=1, minor=2, patch=3),\n    ...     workflow_view={\n    ...         \"analysis_type\": \"code_review\",\n    ...         \"findings_count\": 3,\n    ...         \"severity_max\": \"high\",\n    ...     },\n    ... )",
+      "properties": {
+        "aggregate_type": {
+          "description": "Type of the aggregate (e.g., 'registration', 'intelligence')",
+          "title": "Aggregate Type",
+          "type": "string"
+        },
+        "aggregate_id": {
+          "description": "Unique identifier of the aggregate instance",
+          "format": "uuid",
+          "title": "Aggregate Id",
+          "type": "string"
+        },
+        "from_state": {
+          "description": "The FSM state before the transition",
+          "title": "From State",
+          "type": "string"
+        },
+        "to_state": {
+          "description": "The FSM state after the transition",
+          "title": "To State",
+          "type": "string"
+        },
+        "projection_version": {
+          "description": "Monotonically increasing version of the projection",
+          "minimum": 0,
+          "title": "Projection Version",
+          "type": "integer"
+        },
+        "correlation_id": {
+          "description": "Correlation ID linking this to the original request",
+          "format": "uuid",
+          "title": "Correlation Id",
+          "type": "string"
+        },
+        "causation_id": {
+          "description": "ID of the event that caused this transition",
+          "format": "uuid",
+          "title": "Causation Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "description": "When the transition was committed (UTC recommended)",
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "projection_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hash of the full projection state for integrity verification",
+          "title": "Projection Hash"
+        },
+        "reducer_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelSemVer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Version of the reducer that processed the transition"
+        },
+        "workflow_view": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Bounded view of state for orchestrator workflow decisions",
+          "title": "Workflow View"
+        }
+      },
+      "required": [
+        "aggregate_type",
+        "aggregate_id",
+        "from_state",
+        "to_state",
+        "projection_version",
+        "correlation_id",
+        "causation_id",
+        "timestamp"
+      ],
+      "title": "ModelStateTransitionNotification",
+      "type": "object"
+    },
+    "EnumBindingOrderDirection": {
+      "description": "Direction the upstream projection orders its rows by.",
+      "enum": [
+        "ascending",
+        "descending"
+      ],
+      "title": "EnumBindingOrderDirection",
+      "type": "string"
+    },
+    "EnumCommitLevel": {
+      "description": "Durability of the effect a UI action commits, lowest to highest.",
+      "enum": [
+        "read_only",
+        "reversible",
+        "irreversible"
+      ],
+      "title": "EnumCommitLevel",
+      "type": "string"
+    },
+    "EnumEmptyStateReason": {
+      "description": "Typed reason a UI component renders an empty/error state.\n\nMirrors the ``EmptyStateReason`` TS union exactly (four values, no more).\nA renderer MUST NOT collapse ``SCHEMA_INVALID`` into ``NO_DATA`` \u2014 each\nreason maps to a distinct operator diagnostic.",
+      "enum": [
+        "no-data",
+        "missing-field",
+        "upstream-blocked",
+        "schema-invalid"
+      ],
+      "title": "EnumEmptyStateReason",
+      "type": "string"
+    },
+    "EnumEvidenceGateMoment": {
+      "description": "The moment at which an evidence requirement is enforced.",
+      "enum": [
+        "on-render",
+        "on-commit"
+      ],
+      "title": "EnumEvidenceGateMoment",
+      "type": "string"
+    },
+    "EnumEvidenceKind": {
+      "description": "Types of evidence required for ticket contract validation.\n\nEvidence kinds specify what type of proof is required:\n- TESTS: Automated test coverage\n- DOCS: Documentation updates\n- CI: CI/CD pipeline changes\n- BENCHMARK: Performance benchmarks\n- MANUAL: Manual verification steps",
+      "enum": [
+        "tests",
+        "docs",
+        "ci",
+        "benchmark",
+        "manual"
+      ],
+      "title": "EnumEvidenceKind",
+      "type": "string"
+    },
+    "EnumGateKind": {
+      "description": "Types of gates that require approval.",
+      "enum": [
+        "human_approval",
+        "policy_check",
+        "security_check"
+      ],
+      "title": "EnumGateKind",
+      "type": "string"
+    },
+    "EnumRiskLevel": {
+      "description": "Risk level of executing a UI action, lowest to highest.",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "title": "EnumRiskLevel",
+      "type": "string"
+    },
+    "EnumTicketStepStatus": {
+      "description": "Status values for ticket verification steps and gates.",
+      "enum": [
+        "pending",
+        "passed",
+        "failed",
+        "skipped",
+        "approved",
+        "rejected"
+      ],
+      "title": "EnumTicketStepStatus",
+      "type": "string"
+    },
+    "EnumWidgetType": {
+      "description": "Dashboard widget type enumeration.\n\nDefines the types of widgets available for dashboard configuration.\nEach type has specific configuration requirements and rendering behavior.\nWidget types are categorized as either data-bound (requiring continuous\ndata updates) or aggregation-based (displaying point-in-time metrics).\n\nAttributes:\n    CHART: Line, bar, area, pie, or scatter chart visualization.\n        Config: :class:`~omnibase_core.models.dashboard.ModelWidgetConfigChart`\n    TABLE: Paginated, sortable tabular data display.\n        Config: :class:`~omnibase_core.models.dashboard.ModelWidgetConfigTable`\n    METRIC_CARD: Single KPI display with optional trend and thresholds.\n        Config: :class:`~omnibase_core.models.dashboard.ModelWidgetConfigMetricCard`\n    STATUS_GRID: Grid of status indicators for system health monitoring.\n        Config: :class:`~omnibase_core.models.dashboard.ModelWidgetConfigStatusGrid`\n    EVENT_FEED: Real-time event stream with filtering capabilities.\n        Config: :class:`~omnibase_core.models.dashboard.ModelWidgetConfigEventFeed`\n\nExample:\n    Use in widget definition::\n\n        from omnibase_core.enums import EnumWidgetType\n\n        # Check if widget needs real-time data binding\n        if EnumWidgetType.TABLE.is_data_bound:\n            setup_data_subscription()",
+      "enum": [
+        "chart",
+        "table",
+        "metric_card",
+        "status_grid",
+        "event_feed"
+      ],
+      "title": "EnumWidgetType",
+      "type": "string"
+    },
+    "ModelActionContract": {
+      "additionalProperties": false,
+      "description": "Declares the command a UI action emits and its approval gate.\n\nThe action emits exactly one canonical command topic (a valid ONEX topic\nsuffix whose kind token is ``cmd``). When ``approval_gate`` is present the\naction requires that gate's approval before it commits; ``ModelGate`` owns\nthe approval semantics. ``correlation_required`` enforces that every emission\ncarries a correlation ID (Phase 1 bus trace depends on this).",
+      "properties": {
+        "action_id": {
+          "description": "Stable semantic identifier for this action within a component",
+          "minLength": 1,
+          "title": "Action Id",
+          "type": "string"
+        },
+        "command_topic": {
+          "description": "Canonical onex.cmd.* topic this action emits onto the bus",
+          "minLength": 1,
+          "title": "Command Topic",
+          "type": "string"
+        },
+        "label": {
+          "description": "Human-readable label rendered on the action control",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "approval_gate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelGate"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Composed canonical approval gate; None means no approval required"
+        },
+        "gate_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelActionGatePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Composed risk/confidence policy (confidence_threshold, requires_user_confirmation, risk_level, reversible, commit_level); None means no policy-driven gating beyond the approval gate"
+        },
+        "correlation_required": {
+          "default": true,
+          "description": "Whether every emission must carry a correlation ID",
+          "title": "Correlation Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "action_id",
+        "command_topic",
+        "label"
+      ],
+      "title": "ModelActionContract",
+      "type": "object"
+    },
+    "ModelActionGatePolicy": {
+      "additionalProperties": false,
+      "description": "Risk/confidence policy a UI action gate enforces before committing.\n\nA UI action is a declared ``onex.cmd.*`` command emitter (a button). Before\nthat command is emitted, the action gate consults this policy to decide\nwhether to require user confirmation, how to render affordances/disabled\nstates, and what evidence the action must carry. The policy is declarative\nand platform-neutral; renderers derive behavior from it rather than encoding\nrisk semantics in frontend code.\n\nAttributes:\n    confidence_threshold: Minimum upstream confidence (0.0-1.0) required for\n        the action to proceed without escalation. Below this, the gate\n        escalates (e.g. forces confirmation regardless of other fields).\n    requires_user_confirmation: Whether the action gate must obtain explicit\n        user confirmation before the command is emitted.\n    risk_level: Typed user-facing risk of executing the action.\n    reversible: Whether the committed effect can be undone. This is the\n        boolean fast-path; ``commit_level`` carries the full typed ordinal.\n    commit_level: Typed durability of the effect the action commits\n        (read-only, reversible, or irreversible).",
+      "properties": {
+        "confidence_threshold": {
+          "description": "Minimum upstream confidence (0.0-1.0) for the action to proceed without escalation",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence Threshold",
+          "type": "number"
+        },
+        "requires_user_confirmation": {
+          "description": "Whether explicit user confirmation is required before emit",
+          "title": "Requires User Confirmation",
+          "type": "boolean"
+        },
+        "risk_level": {
+          "$ref": "#/$defs/EnumRiskLevel",
+          "description": "Typed user-facing risk of executing the action"
+        },
+        "reversible": {
+          "description": "Whether the committed effect can be undone",
+          "title": "Reversible",
+          "type": "boolean"
+        },
+        "commit_level": {
+          "$ref": "#/$defs/EnumCommitLevel",
+          "description": "Typed durability of the effect the action commits"
+        }
+      },
+      "required": [
+        "confidence_threshold",
+        "requires_user_confirmation",
+        "risk_level",
+        "reversible",
+        "commit_level"
+      ],
+      "title": "ModelActionGatePolicy",
+      "type": "object"
+    },
+    "ModelDataBindingContract": {
+      "additionalProperties": false,
+      "description": "Declares how a component binds to a projection topic.\n\nThe binding names the projection topic, the ordering authority (the column\nthe projection orders by and the direction), and the required fields the\ncomponent consumes. Missing fields surface as a typed empty-state reason at\nrender time, never a fallback literal.",
+      "properties": {
+        "binding_id": {
+          "description": "Stable semantic identifier for this binding within a component",
+          "minLength": 1,
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "projection_topic": {
+          "description": "Canonical projection topic read via /projection/{topic}; no raw DB",
+          "minLength": 1,
+          "title": "Projection Topic",
+          "type": "string"
+        },
+        "ordering_authority_field": {
+          "description": "Column the upstream projection orders by (explicit ordering authority)",
+          "minLength": 1,
+          "title": "Ordering Authority Field",
+          "type": "string"
+        },
+        "ordering_direction": {
+          "$ref": "#/$defs/EnumBindingOrderDirection",
+          "default": "descending",
+          "description": "Direction the ordering-authority field is ordered by upstream"
+        },
+        "required_fields": {
+          "default": [],
+          "description": "Projection row fields this component requires to render",
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Fields",
+          "type": "array"
+        },
+        "cursor_field": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional pagination cursor field exposed by the projection",
+          "title": "Cursor Field"
+        }
+      },
+      "required": [
+        "binding_id",
+        "projection_topic",
+        "ordering_authority_field"
+      ],
+      "title": "ModelDataBindingContract",
+      "type": "object"
+    },
+    "ModelEvidenceRequirement": {
+      "additionalProperties": false,
+      "description": "Evidence requirement in ticket contract.\n\nDeclares what type of evidence must exist before a ticket can be marked Done.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/EnumEvidenceKind",
+          "description": "Type of evidence"
+        },
+        "description": {
+          "description": "What evidence must exist",
+          "maxLength": 10000,
+          "title": "Description",
+          "type": "string"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "maxLength": 10000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How to reproduce, if applicable",
+          "title": "Command"
+        }
+      },
+      "required": [
+        "kind",
+        "description"
+      ],
+      "title": "ModelEvidenceRequirement",
+      "type": "object"
+    },
+    "ModelEvidenceRequirementContract": {
+      "additionalProperties": false,
+      "description": "Declares evidence required before an action commits or a panel renders.\n\nComposes the canonical OCC ``ModelEvidenceRequirement`` rather than\nredefining its fields. ``gate_moment`` says whether the evidence gates a\nrender or a commit; ``unmet_display_message`` is the operator-facing message\nsurfaced when the requirement is not satisfied.",
+      "properties": {
+        "contract_id": {
+          "description": "Stable semantic identifier for this evidence requirement contract",
+          "minLength": 1,
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "requirement": {
+          "$ref": "#/$defs/ModelEvidenceRequirement",
+          "description": "Canonical OCC evidence requirement composed into this UI contract"
+        },
+        "gate_moment": {
+          "$ref": "#/$defs/EnumEvidenceGateMoment",
+          "description": "Whether the evidence gates a panel render or an action commit"
+        },
+        "unmet_display_message": {
+          "description": "Operator-facing message shown when the requirement is unmet",
+          "minLength": 1,
+          "title": "Unmet Display Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "requirement",
+        "gate_moment",
+        "unmet_display_message"
+      ],
+      "title": "ModelEvidenceRequirementContract",
+      "type": "object"
+    },
+    "ModelGate": {
+      "additionalProperties": false,
+      "description": "A gate that requires approval before proceeding.\n\nImmutability:\n    This model uses frozen=True, making instances immutable after creation.\n    This enables safe sharing across threads without synchronization.\n\nStatus Values:\n    Valid: PENDING, APPROVED, REJECTED, SKIPPED, FAILED\n    Invalid: PASSED (gates use approval semantics, not passed/failed)",
+      "properties": {
+        "id": {
+          "description": "Unique identifier for the gate",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EnumGateKind",
+          "description": "Type of gate"
+        },
+        "description": {
+          "description": "Description of what needs approval",
+          "title": "Description",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "description": "Whether approval is required",
+          "title": "Required",
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "#/$defs/EnumTicketStepStatus",
+          "default": "pending",
+          "description": "Current status of the gate"
+        },
+        "approver": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Who approved/rejected",
+          "title": "Approver"
+        },
+        "decided_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When the decision was made",
+          "title": "Decided At"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "description"
+      ],
+      "title": "ModelGate",
+      "type": "object"
+    },
+    "ModelPermissionContract": {
+      "additionalProperties": false,
+      "description": "Declares the scopes required to view and to act, plus disabled reasons.\n\n``view_scopes`` gate visibility; ``act_scopes`` gate interaction. When a\nviewer is permitted to see but not act, the action renders disabled and\n``disabled_reason`` states why \u2014 a declared reason is mandatory, never a\nsilent disable.",
+      "properties": {
+        "permission_id": {
+          "description": "Stable semantic identifier for this permission contract",
+          "minLength": 1,
+          "title": "Permission Id",
+          "type": "string"
+        },
+        "view_scopes": {
+          "default": [],
+          "description": "Scopes required to see the component; empty means visible to all",
+          "items": {
+            "type": "string"
+          },
+          "title": "View Scopes",
+          "type": "array"
+        },
+        "act_scopes": {
+          "default": [],
+          "description": "Scopes required to act; empty means no extra scope beyond view",
+          "items": {
+            "type": "string"
+          },
+          "title": "Act Scopes",
+          "type": "array"
+        },
+        "disabled_reason": {
+          "description": "Declared reason shown when the viewer may see but not act",
+          "minLength": 1,
+          "title": "Disabled Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "permission_id",
+        "disabled_reason"
+      ],
+      "title": "ModelPermissionContract",
+      "type": "object"
+    },
+    "ModelComponentContract": {
+      "additionalProperties": false,
+      "description": "A platform-neutral declaration of a UI component.\n\n``component_kind`` reuses the shipped ``EnumWidgetType`` so a renderer's\nadvertised ``supported_component_kinds`` can gate rendering. ``data_bindings``,\n``actions``, ``evidence_requirements``, and ``permission`` compose the other\nPhase 0 primitives. ``supported_empty_state_reasons`` declares which typed\nreasons this component can surface; the client never blanks silently.",
+      "properties": {
+        "component_id": {
+          "description": "Stable semantic identifier for this component contract",
+          "minLength": 1,
+          "title": "Component Id",
+          "type": "string"
+        },
+        "component_kind": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "description": "Shipped component kind a renderer must support to render this"
+        },
+        "title": {
+          "description": "Human-readable component title",
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "contract_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Semantic version of this component contract (additive/versioned)"
+        },
+        "data_bindings": {
+          "default": [],
+          "description": "Projection bindings this component reads truth from",
+          "items": {
+            "$ref": "#/$defs/ModelDataBindingContract"
+          },
+          "title": "Data Bindings",
+          "type": "array"
+        },
+        "actions": {
+          "default": [],
+          "description": "Declared command-emitting actions this component exposes",
+          "items": {
+            "$ref": "#/$defs/ModelActionContract"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "evidence_requirements": {
+          "default": [],
+          "description": "Evidence required before this component renders or commits",
+          "items": {
+            "$ref": "#/$defs/ModelEvidenceRequirementContract"
+          },
+          "title": "Evidence Requirements",
+          "type": "array"
+        },
+        "permission": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelPermissionContract"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Permission contract gating who may see/act; None means unrestricted"
+        },
+        "supported_empty_state_reasons": {
+          "default": [],
+          "description": "Typed empty-state reasons this component can surface",
+          "items": {
+            "$ref": "#/$defs/EnumEmptyStateReason"
+          },
+          "title": "Supported Empty State Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "component_id",
+        "component_kind",
+        "title",
+        "contract_version"
+      ],
+      "title": "ModelComponentContract",
+      "type": "object"
+    },
+    "EnumAccessibilityTier": {
+      "description": "WCAG-aligned accessibility conformance tier.",
+      "enum": [
+        "a",
+        "aa",
+        "aaa"
+      ],
+      "title": "EnumAccessibilityTier",
+      "type": "string"
+    },
+    "EnumRendererInteractionModel": {
+      "description": "How a user interacts with a renderer.",
+      "enum": [
+        "pointer",
+        "touch",
+        "keyboard",
+        "voice"
+      ],
+      "title": "EnumRendererInteractionModel",
+      "type": "string"
+    },
+    "ModelRendererCapabilityContract": {
+      "additionalProperties": false,
+      "description": "A renderer's advertised capability surface.\n\n``supported_component_kinds`` reuses the shipped ``EnumWidgetType``\nvocabulary so capability negotiation is anchored on the component kinds that\nalready exist. The ``supports_*`` flags express granular interaction\ncapabilities a contract may require. ``contract_version`` lets the capability\nprojection track schema drift per renderer.",
+      "properties": {
+        "renderer_id": {
+          "description": "Stable renderer identifier (e.g. 'ui.effect.web', 'ui.effect.cli')",
+          "minLength": 1,
+          "title": "Renderer Id",
+          "type": "string"
+        },
+        "platform": {
+          "description": "Target platform the renderer runs on (e.g. 'web', 'ios', 'cli')",
+          "minLength": 1,
+          "title": "Platform",
+          "type": "string"
+        },
+        "supported_component_kinds": {
+          "description": "Component kinds this renderer can render (shipped EnumWidgetType)",
+          "items": {
+            "$ref": "#/$defs/EnumWidgetType"
+          },
+          "title": "Supported Component Kinds",
+          "type": "array"
+        },
+        "interaction_model": {
+          "$ref": "#/$defs/EnumRendererInteractionModel",
+          "description": "Interaction model the renderer advertises"
+        },
+        "accessibility_tier": {
+          "$ref": "#/$defs/EnumAccessibilityTier",
+          "description": "WCAG-aligned accessibility tier the renderer guarantees"
+        },
+        "contract_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Semantic version of the capability contract this row declares"
+        },
+        "supports_interaction": {
+          "default": false,
+          "description": "Whether the renderer can emit user-driven command actions",
+          "title": "Supports Interaction",
+          "type": "boolean"
+        },
+        "supports_streaming": {
+          "default": false,
+          "description": "Whether the renderer can consume streaming projection updates",
+          "title": "Supports Streaming",
+          "type": "boolean"
+        },
+        "supports_theming": {
+          "default": false,
+          "description": "Whether the renderer honors a versioned theme contract",
+          "title": "Supports Theming",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "renderer_id",
+        "platform",
+        "supported_component_kinds",
+        "interaction_model",
+        "accessibility_tier",
+        "contract_version"
+      ],
+      "title": "ModelRendererCapabilityContract",
+      "type": "object"
+    },
+    "ModelRendererThemeContract": {
+      "additionalProperties": false,
+      "description": "A versioned, platform-neutral design-token contract for renderers.\n\nEvery renderer that declares ``supports_theming=True`` in its\n``ModelRendererCapabilityContract`` must consume tokens from an instance\nof this model \u2014 it must never hard-code token values.\n\n``contract_version`` is the authoritative version of this token set.\nConsumers should carry the version forward into their generated output (e.g.\n``--theme-version: 1.0.0`` in CSS) so drift is always traceable.",
+      "properties": {
+        "theme_id": {
+          "description": "Stable, namespaced theme identifier (e.g. 'onex.theme.dark.v1', 'onex.theme.light.v1')",
+          "minLength": 1,
+          "title": "Theme Id",
+          "type": "string"
+        },
+        "contract_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Semantic version of this token contract. Bump when adding, removing, or renaming any token field."
+        },
+        "color_background_primary": {
+          "description": "Primary page/panel background (e.g. '#0f172a')",
+          "minLength": 1,
+          "title": "Color Background Primary",
+          "type": "string"
+        },
+        "color_background_secondary": {
+          "description": "Secondary / sidebar background",
+          "minLength": 1,
+          "title": "Color Background Secondary",
+          "type": "string"
+        },
+        "color_background_elevated": {
+          "description": "Elevated surface background (cards, dropdowns)",
+          "minLength": 1,
+          "title": "Color Background Elevated",
+          "type": "string"
+        },
+        "color_text_primary": {
+          "description": "Primary body text color",
+          "minLength": 1,
+          "title": "Color Text Primary",
+          "type": "string"
+        },
+        "color_text_secondary": {
+          "description": "Secondary / muted text color",
+          "minLength": 1,
+          "title": "Color Text Secondary",
+          "type": "string"
+        },
+        "color_text_disabled": {
+          "description": "Disabled / placeholder text color",
+          "minLength": 1,
+          "title": "Color Text Disabled",
+          "type": "string"
+        },
+        "color_accent_primary": {
+          "description": "Primary brand / interactive accent color",
+          "minLength": 1,
+          "title": "Color Accent Primary",
+          "type": "string"
+        },
+        "color_accent_secondary": {
+          "description": "Secondary / hover accent color",
+          "minLength": 1,
+          "title": "Color Accent Secondary",
+          "type": "string"
+        },
+        "color_status_success": {
+          "description": "Success / green semantic color",
+          "minLength": 1,
+          "title": "Color Status Success",
+          "type": "string"
+        },
+        "color_status_warning": {
+          "description": "Warning / amber semantic color",
+          "minLength": 1,
+          "title": "Color Status Warning",
+          "type": "string"
+        },
+        "color_status_error": {
+          "description": "Error / red semantic color",
+          "minLength": 1,
+          "title": "Color Status Error",
+          "type": "string"
+        },
+        "color_status_info": {
+          "description": "Informational / blue semantic color",
+          "minLength": 1,
+          "title": "Color Status Info",
+          "type": "string"
+        },
+        "color_border_default": {
+          "description": "Default / subtle border color",
+          "minLength": 1,
+          "title": "Color Border Default",
+          "type": "string"
+        },
+        "color_border_strong": {
+          "description": "Strong / emphasized border color",
+          "minLength": 1,
+          "title": "Color Border Strong",
+          "type": "string"
+        },
+        "spacing_xs": {
+          "description": "Extra-small spacing token (e.g. '0.25rem')",
+          "minLength": 1,
+          "title": "Spacing Xs",
+          "type": "string"
+        },
+        "spacing_sm": {
+          "description": "Small spacing token (e.g. '0.5rem')",
+          "minLength": 1,
+          "title": "Spacing Sm",
+          "type": "string"
+        },
+        "spacing_md": {
+          "description": "Medium / base spacing token (e.g. '1rem')",
+          "minLength": 1,
+          "title": "Spacing Md",
+          "type": "string"
+        },
+        "spacing_lg": {
+          "description": "Large spacing token (e.g. '1.5rem')",
+          "minLength": 1,
+          "title": "Spacing Lg",
+          "type": "string"
+        },
+        "spacing_xl": {
+          "description": "Extra-large spacing token (e.g. '2rem')",
+          "minLength": 1,
+          "title": "Spacing Xl",
+          "type": "string"
+        },
+        "font_family_base": {
+          "description": "Base / body font-family stack (e.g. \"'Inter', system-ui, sans-serif\")",
+          "minLength": 1,
+          "title": "Font Family Base",
+          "type": "string"
+        },
+        "font_size_sm": {
+          "description": "Small font size (e.g. '0.875rem')",
+          "minLength": 1,
+          "title": "Font Size Sm",
+          "type": "string"
+        },
+        "font_size_md": {
+          "description": "Medium / body font size (e.g. '1rem')",
+          "minLength": 1,
+          "title": "Font Size Md",
+          "type": "string"
+        },
+        "font_size_lg": {
+          "description": "Large font size (e.g. '1.125rem')",
+          "minLength": 1,
+          "title": "Font Size Lg",
+          "type": "string"
+        },
+        "font_weight_normal": {
+          "description": "Normal font weight (e.g. '400')",
+          "minLength": 1,
+          "title": "Font Weight Normal",
+          "type": "string"
+        },
+        "font_weight_bold": {
+          "description": "Bold font weight (e.g. '700')",
+          "minLength": 1,
+          "title": "Font Weight Bold",
+          "type": "string"
+        },
+        "border_radius_sm": {
+          "description": "Small border radius (e.g. '0.25rem')",
+          "minLength": 1,
+          "title": "Border Radius Sm",
+          "type": "string"
+        },
+        "border_radius_md": {
+          "description": "Medium border radius (e.g. '0.5rem')",
+          "minLength": 1,
+          "title": "Border Radius Md",
+          "type": "string"
+        },
+        "border_radius_lg": {
+          "description": "Large border radius (e.g. '1rem')",
+          "minLength": 1,
+          "title": "Border Radius Lg",
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme_id",
+        "contract_version",
+        "color_background_primary",
+        "color_background_secondary",
+        "color_background_elevated",
+        "color_text_primary",
+        "color_text_secondary",
+        "color_text_disabled",
+        "color_accent_primary",
+        "color_accent_secondary",
+        "color_status_success",
+        "color_status_warning",
+        "color_status_error",
+        "color_status_info",
+        "color_border_default",
+        "color_border_strong",
+        "spacing_xs",
+        "spacing_sm",
+        "spacing_md",
+        "spacing_lg",
+        "spacing_xl",
+        "font_family_base",
+        "font_size_sm",
+        "font_size_md",
+        "font_size_lg",
+        "font_weight_normal",
+        "font_weight_bold",
+        "border_radius_sm",
+        "border_radius_md",
+        "border_radius_lg"
+      ],
+      "title": "ModelRendererThemeContract",
+      "type": "object"
+    },
+    "ModelThemeInstance": {
+      "additionalProperties": false,
+      "description": "A versioned, schema-validated set of design-token values.\n\nThe unit a surface activates and a catalog entry points at. Immutable:\na published revision is never edited in place, because rollback is only\nmeaningful if the bytes behind a revision cannot move.",
+      "properties": {
+        "theme_id": {
+          "description": "Stable, namespaced theme identifier (e.g. 'onex.theme.dark'). Must equal the embedded token set's theme_id.",
+          "minLength": 1,
+          "title": "Theme Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "ModelRendererThemeContract version this document was authored against. Must equal tokens.contract_version."
+        },
+        "instance_revision": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "This document's own revision. Bump when a token VALUE changes; distinct from schema_version, which tracks token FIELDS."
+        },
+        "summary": {
+          "description": "Human-readable description of what this theme revision is for",
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "tokens": {
+          "$ref": "#/$defs/ModelRendererThemeContract",
+          "description": "The complete, schema-validated token value set"
+        }
+      },
+      "required": [
+        "theme_id",
+        "schema_version",
+        "instance_revision",
+        "summary",
+        "tokens"
+      ],
+      "title": "ModelThemeInstance",
+      "type": "object"
+    },
+    "ModelThemeCatalogEntry": {
+      "additionalProperties": false,
+      "description": "One immutable, digested theme revision in the catalog.",
+      "properties": {
+        "theme_id": {
+          "description": "Namespaced theme identifier (e.g. 'onex.theme.dark')",
+          "minLength": 1,
+          "title": "Theme Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "ModelRendererThemeContract version this revision validates against"
+        },
+        "instance_revision": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Revision of the theme instance document"
+        },
+        "content_digest": {
+          "description": "SHA-256 over the published bytes, as 'sha256:<hex>'",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "source_path": {
+          "description": "Catalog-root-relative path of the instance document",
+          "minLength": 1,
+          "title": "Source Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "theme_id",
+        "schema_version",
+        "instance_revision",
+        "content_digest",
+        "source_path"
+      ],
+      "title": "ModelThemeCatalogEntry",
+      "type": "object"
+    },
+    "ModelThemeCatalog": {
+      "additionalProperties": false,
+      "description": "Every published theme revision, indexed by (theme_id, instance_revision).",
+      "properties": {
+        "catalog_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Version of the catalog format itself (not of any theme)"
+        },
+        "entries": {
+          "description": "Published, immutable theme revisions",
+          "items": {
+            "$ref": "#/$defs/ModelThemeCatalogEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "catalog_version",
+        "entries"
+      ],
+      "title": "ModelThemeCatalog",
+      "type": "object"
+    },
+    "ModelThemeActivation": {
+      "additionalProperties": false,
+      "description": "Which published theme revision a surface is currently rendering.",
+      "properties": {
+        "surface_id": {
+          "description": "Surface whose active theme this pointer describes (e.g. 'omnidash')",
+          "minLength": 1,
+          "title": "Surface Id",
+          "type": "string"
+        },
+        "theme_id": {
+          "description": "Namespaced theme identifier this surface renders",
+          "minLength": 1,
+          "title": "Theme Id",
+          "type": "string"
+        },
+        "instance_revision": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Exact published revision this surface renders"
+        },
+        "content_digest": {
+          "description": "Digest resolved from the catalog at activation time. Two surfaces on one entry must report the same value (GC.2).",
+          "title": "Content Digest",
+          "type": "string"
+        },
+        "activation_sequence": {
+          "description": "Monotonic activation counter for this surface; first activation is 1",
+          "minimum": 1,
+          "title": "Activation Sequence",
+          "type": "integer"
+        },
+        "superseded_revision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelSemVer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Revision this activation replaced, and therefore the revision a rollback returns to. None on a surface's first activation."
+        }
+      },
+      "required": [
+        "surface_id",
+        "theme_id",
+        "instance_revision",
+        "content_digest",
+        "activation_sequence"
+      ],
+      "title": "ModelThemeActivation",
+      "type": "object"
+    },
+    "EnumStatusSecondaryKind": {
+      "description": "Kind of numeric secondary displayed alongside a tile's status.\n\nAttributes:\n    COUNT: A cardinality \u2014 quarantined messages, failing nodes.\n    DEPTH: A backlog size \u2014 DLQ depth, consumer lag.\n    RATE: A per-interval rate \u2014 arrivals per minute.",
+      "enum": [
+        "count",
+        "depth",
+        "rate"
+      ],
+      "title": "EnumStatusSecondaryKind",
+      "type": "string"
+    },
+    "EnumStatusSeverity": {
+      "description": "Semantic severity role of a status tile.\n\nAttributes:\n    NOMINAL: Operating as expected.\n    UNKNOWN: State could not be determined. Not an alarm, not an all-clear.\n    ATTENTION: Degraded or trending wrong; a human should look.\n    CRITICAL: Failing now.",
+      "enum": [
+        "nominal",
+        "unknown",
+        "attention",
+        "critical"
+      ],
+      "title": "EnumStatusSeverity",
+      "type": "string"
+    },
+    "ModelChartAxisConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for a chart axis in dashboard visualizations.\n\nDefines display properties for X or Y axes in chart widgets,\nincluding labels, value ranges, and grid visibility.\n\nUsed by chart-based dashboard widgets to configure axis rendering.",
+      "properties": {
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Axis label",
+          "title": "Label"
+        },
+        "min_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Minimum axis value",
+          "title": "Min Value"
+        },
+        "max_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Maximum axis value",
+          "title": "Max Value"
+        },
+        "show_grid": {
+          "default": true,
+          "description": "Show grid lines",
+          "title": "Show Grid",
+          "type": "boolean"
+        }
+      },
+      "title": "ModelChartAxisConfig",
+      "type": "object"
+    },
+    "ModelChartSeriesConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for a single data series in dashboard charts.\n\nDefines how a dataset should be rendered within a chart widget,\nincluding the data source key, visual styling, and chart type.\n\nMultiple series configs can be combined to create multi-series\ncharts with different visualization styles (line, bar, area, scatter).",
+      "properties": {
+        "name": {
+          "description": "Series display name",
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "data_key": {
+          "description": "Key to extract data from source",
+          "minLength": 1,
+          "title": "Data Key",
+          "type": "string"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Series color (hex)",
+          "title": "Color"
+        },
+        "series_type": {
+          "default": "line",
+          "description": "How to render this series",
+          "enum": [
+            "line",
+            "bar",
+            "area",
+            "scatter"
+          ],
+          "title": "Series Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "data_key"
+      ],
+      "title": "ModelChartSeriesConfig",
+      "type": "object"
+    },
+    "ModelEventFilter": {
+      "additionalProperties": false,
+      "description": "Filter configuration for event feed widgets.\n\nDefines criteria for filtering which events appear in an event feed.\nAll filter criteria use allowlist semantics - only events matching\nthe specified values are included. Empty tuples mean \"include all\".\n\nMultiple filter criteria are combined with AND logic - an event must\nmatch all non-empty filter criteria to be displayed.\n\nAttributes:\n    event_types: Tuple of event type strings to include. An empty tuple\n        means all event types are included. Example: (\"error\", \"warning\").\n    severity_levels: Tuple of severity levels to include. An empty tuple\n        means all severity levels are included. Example: (\"critical\", \"error\").\n    sources: Tuple of event source identifiers to include. An empty tuple\n        means all sources are included. Example: (\"api\", \"worker\", \"scheduler\").\n\nExample:\n    Filter to show only error events::\n\n        filter = ModelEventFilter(\n            event_types=(\"error\",),\n        )\n\n    No filtering (show all events)::\n\n        filter = ModelEventFilter()  # All tuples default to empty",
+      "properties": {
+        "event_types": {
+          "default": [],
+          "description": "Event types to include (empty = all)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Event Types",
+          "type": "array"
+        },
+        "severity_levels": {
+          "default": [],
+          "description": "Severity levels to include (empty = all)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Severity Levels",
+          "type": "array"
+        },
+        "sources": {
+          "default": [],
+          "description": "Event sources to include (empty = all)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "title": "ModelEventFilter",
+      "type": "object"
+    },
+    "ModelMetricThreshold": {
+      "additionalProperties": false,
+      "description": "Threshold configuration for conditional metric coloring.\n\nDefines a value threshold that triggers a color change in metric card\nwidgets. Multiple thresholds can be configured to create a color scale\n(e.g., green -> yellow -> red) based on the metric value.\n\nThresholds are typically evaluated in ascending order by value. When\nthe metric exceeds a threshold value, that threshold's color is applied.\n\nAttributes:\n    value: The numeric threshold value. When the metric reaches or\n        exceeds this value, the associated color is applied.\n    color: Hex color code to apply when threshold is reached. Must be\n        a valid hex format (#RGB, #RRGGBB, #RGBA, or #RRGGBBAA).\n    label: Optional human-readable label for the threshold level\n        (e.g., \"Good\", \"Warning\", \"Critical\").\n\nRaises:\n    ValueError: If color is not a valid hex color format.\n\nExample:\n    Single warning threshold::\n\n        threshold = ModelMetricThreshold(\n            value=80.0,\n            color=\"#eab308\",\n            label=\"High Usage\",\n        )",
+      "properties": {
+        "value": {
+          "description": "Threshold value",
+          "title": "Value",
+          "type": "number"
+        },
+        "color": {
+          "description": "Color when threshold is reached (hex)",
+          "title": "Color",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Threshold label",
+          "title": "Label"
+        }
+      },
+      "required": [
+        "value",
+        "color"
+      ],
+      "title": "ModelMetricThreshold",
+      "type": "object"
+    },
+    "ModelSeverityRole": {
+      "additionalProperties": false,
+      "description": "Presentation of one severity: theme token, text label, icon.",
+      "properties": {
+        "severity": {
+          "$ref": "#/$defs/EnumStatusSeverity",
+          "description": "Semantic severity this role renders"
+        },
+        "theme_color_token": {
+          "description": "Name of the ModelRendererThemeContract token this severity resolves to (e.g. 'color_status_error'). A NAME, never a colour value.",
+          "minLength": 1,
+          "title": "Theme Color Token",
+          "type": "string"
+        },
+        "label": {
+          "description": "Text label rendered for this severity; never colour alone",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "icon": {
+          "description": "Icon/shape identifier rendered for this severity; distinct per severity",
+          "minLength": 1,
+          "title": "Icon",
+          "type": "string"
+        }
+      },
+      "required": [
+        "severity",
+        "theme_color_token",
+        "label",
+        "icon"
+      ],
+      "title": "ModelSeverityRole",
+      "type": "object"
+    },
+    "ModelSeverityVerdict": {
+      "additionalProperties": false,
+      "description": "An upstream severity decision, traceable to the policy that made it.",
+      "properties": {
+        "severity": {
+          "$ref": "#/$defs/EnumStatusSeverity",
+          "description": "Canonical semantic severity decided upstream"
+        },
+        "status_value": {
+          "description": "The upstream verdict in its own vocabulary (e.g. 'STALLED', 'STARVED'), preserved so the tile can show what was actually said",
+          "minLength": 1,
+          "title": "Status Value",
+          "type": "string"
+        },
+        "policy_id": {
+          "description": "Identifier of the policy that produced this verdict",
+          "minLength": 1,
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Version of that policy"
+        },
+        "policy_digest": {
+          "description": "SHA-256 of the policy revision, as 'sha256:<hex>'",
+          "title": "Policy Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "severity",
+        "status_value",
+        "policy_id",
+        "policy_version",
+        "policy_digest"
+      ],
+      "title": "ModelSeverityVerdict",
+      "type": "object"
+    },
+    "ModelStatusItemConfig": {
+      "additionalProperties": false,
+      "description": "One tile: what it names, what upstream says about it, and its number.\n\n``verdict`` is required. A tile that cannot say what it is reporting is a\nlabel, not a status indicator, and the board exists to show what is broken.",
+      "properties": {
+        "key": {
+          "description": "Data key for this status item",
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "description": "Display label",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Icon identifier for the thing being monitored (a database, a queue). Distinct from the severity icon, which comes from the grid's severity role and is never optional.",
+          "title": "Icon"
+        },
+        "verdict": {
+          "$ref": "#/$defs/ModelSeverityVerdict",
+          "description": "Upstream severity verdict for this tile, with the policy that produced it. Computed upstream; never inferred by the client."
+        },
+        "secondary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelStatusSecondary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Numeric secondary displayed alongside the status (count, depth, rate). None where the tile's truth is the verdict alone."
+        }
+      },
+      "required": [
+        "key",
+        "label",
+        "verdict"
+      ],
+      "title": "ModelStatusItemConfig",
+      "type": "object"
+    },
+    "ModelStatusSecondary": {
+      "additionalProperties": false,
+      "description": "A numeric secondary displayed alongside a tile's status.",
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/EnumStatusSecondaryKind",
+          "description": "What the number measures: count, depth, or rate"
+        },
+        "value": {
+          "description": "The measured value as delivered by the upstream projection",
+          "title": "Value",
+          "type": "number"
+        },
+        "label": {
+          "description": "Short human-readable label for the number (e.g. 'DLQ depth')",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unit or per-interval suffix (e.g. 'msg/min'). None where the number is dimensionless, which a count usually is.",
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "kind",
+        "value",
+        "label"
+      ],
+      "title": "ModelStatusSecondary",
+      "type": "object"
+    },
+    "ModelTableColumnConfig": {
+      "additionalProperties": false,
+      "description": "Configuration for a single column in dashboard table widgets.\n\nDefines column display properties including header text, width,\nsorting behavior, alignment, and value formatting.\n\nUsed by table-based dashboard widgets to configure column rendering\nand user interaction capabilities.",
+      "properties": {
+        "key": {
+          "description": "Data key for this column",
+          "minLength": 1,
+          "title": "Key",
+          "type": "string"
+        },
+        "header": {
+          "description": "Column header display text",
+          "minLength": 1,
+          "title": "Header",
+          "type": "string"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Column width in pixels (minimum 1 when set)",
+          "title": "Width"
+        },
+        "sortable": {
+          "default": true,
+          "description": "Allow sorting by this column",
+          "title": "Sortable",
+          "type": "boolean"
+        },
+        "align": {
+          "default": "left",
+          "description": "Text alignment",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "title": "Align",
+          "type": "string"
+        },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Display format (e.g., 'currency', 'percent', 'date')",
+          "title": "Format"
+        }
+      },
+      "required": [
+        "key",
+        "header"
+      ],
+      "title": "ModelTableColumnConfig",
+      "type": "object"
+    },
+    "ModelWidgetConfigChart": {
+      "additionalProperties": false,
+      "description": "Configuration for chart-type dashboard widgets.\n\nDefines how a chart widget renders data with one or more series and\noptional axis configurations. Supports multiple chart types including\nline graphs, bar charts, area charts, pie charts, and scatter plots.\n\nData-driven chart types (line, bar, area, scatter) require at least one\nseries configuration. Pie charts derive their segments from the data\ndirectly without explicit series configuration.\n\nAttributes:\n    config_kind: Literal discriminator value, always \"chart\".\n    widget_type: Widget type enum, always CHART.\n    chart_type: The visualization style - line, bar, area, pie, or scatter.\n    series: Tuple of series configurations defining each data line/bar.\n        Required for line, bar, area, and scatter charts.\n    x_axis: Optional X-axis configuration for labels and ranges.\n    y_axis: Optional Y-axis configuration for labels and ranges.\n    show_legend: Whether to display the legend identifying series.\n    stacked: Whether to stack series values (for bar/area charts).\n\nRaises:\n    ValueError: If a data-driven chart type has no series configured.\n\nExample:\n    Stacked bar chart::\n\n        config = ModelWidgetConfigChart(\n            chart_type=\"bar\",\n            series=(series1, series2),\n            stacked=True,\n        )",
+      "properties": {
+        "config_kind": {
+          "const": "chart",
+          "default": "chart",
+          "description": "Discriminator for widget config union",
+          "title": "Config Kind",
+          "type": "string"
+        },
+        "widget_type": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "default": "chart",
+          "description": "Widget type enum value"
+        },
+        "chart_type": {
+          "default": "line",
+          "description": "Primary chart visualization type",
+          "enum": [
+            "line",
+            "bar",
+            "area",
+            "pie",
+            "scatter"
+          ],
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "series": {
+          "default": [],
+          "description": "Chart series configurations",
+          "items": {
+            "$ref": "#/$defs/ModelChartSeriesConfig"
+          },
+          "title": "Series",
+          "type": "array"
+        },
+        "x_axis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelChartAxisConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "X-axis configuration"
+        },
+        "y_axis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelChartAxisConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Y-axis configuration"
+        },
+        "show_legend": {
+          "default": true,
+          "description": "Show chart legend",
+          "title": "Show Legend",
+          "type": "boolean"
+        },
+        "stacked": {
+          "default": false,
+          "description": "Stack series values",
+          "title": "Stacked",
+          "type": "boolean"
+        }
+      },
+      "title": "ModelWidgetConfigChart",
+      "type": "object"
+    },
+    "ModelWidgetConfigEventFeed": {
+      "additionalProperties": false,
+      "description": "Configuration for event feed dashboard widgets.\n\nDisplays a scrolling feed of events in real-time, with optional filtering\nby event type, severity, and source. Events can be displayed with\ntimestamps, source information, and severity indicators.\n\nThe ``event_filter`` field uses the alias \"filter\" for JSON serialization\nto match frontend conventions while avoiding Python keyword conflicts.\n\nAttributes:\n    config_kind: Literal discriminator value, always \"event_feed\".\n    widget_type: Widget type enum, always EVENT_FEED.\n    max_items: Maximum number of events to display in the feed (1-500).\n        Older events are removed when this limit is exceeded.\n    event_filter: Optional filter configuration to limit which events\n        are displayed. Serialized as \"filter\" in JSON.\n    show_timestamp: Whether to display event timestamps.\n    show_source: Whether to display the event source/origin.\n    show_severity: Whether to show severity level indicator.\n    group_by_type: Whether to group events by their type.\n    auto_scroll: Whether to automatically scroll to show new events.\n\nExample:\n    Minimal event feed showing all events::\n\n        config = ModelWidgetConfigEventFeed(max_items=25)",
+      "properties": {
+        "config_kind": {
+          "const": "event_feed",
+          "default": "event_feed",
+          "description": "Discriminator for widget config union",
+          "title": "Config Kind",
+          "type": "string"
+        },
+        "widget_type": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "default": "event_feed",
+          "description": "Widget type enum value"
+        },
+        "max_items": {
+          "default": 50,
+          "description": "Maximum events to display",
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Max Items",
+          "type": "integer"
+        },
+        "filter": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ModelEventFilter"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Event filtering configuration"
+        },
+        "show_timestamp": {
+          "default": true,
+          "description": "Show event timestamps",
+          "title": "Show Timestamp",
+          "type": "boolean"
+        },
+        "show_source": {
+          "default": true,
+          "description": "Show event source",
+          "title": "Show Source",
+          "type": "boolean"
+        },
+        "show_severity": {
+          "default": true,
+          "description": "Show severity indicator",
+          "title": "Show Severity",
+          "type": "boolean"
+        },
+        "group_by_type": {
+          "default": false,
+          "description": "Group events by type",
+          "title": "Group By Type",
+          "type": "boolean"
+        },
+        "auto_scroll": {
+          "default": true,
+          "description": "Auto-scroll to new events",
+          "title": "Auto Scroll",
+          "type": "boolean"
+        }
+      },
+      "title": "ModelWidgetConfigEventFeed",
+      "type": "object"
+    },
+    "ModelWidgetConfigMetricCard": {
+      "additionalProperties": false,
+      "description": "Configuration for metric card dashboard widgets.\n\nDisplays a single metric value prominently with optional formatting,\ntrend indicator, color thresholds, and icon. Metric cards are ideal\nfor highlighting KPIs like counts, percentages, or durations.\n\nThe threshold system allows dynamic coloring based on the metric value,\nwith thresholds checked in order (first matching threshold wins).\n\nAttributes:\n    config_kind: Literal discriminator value, always \"metric_card\".\n    widget_type: Widget type enum, always METRIC_CARD.\n    metric_key: Data key to extract the metric value from the data source.\n    label: Human-readable label displayed above/below the value.\n    unit: Unit of measurement displayed after the value (e.g., \"%\", \"ms\").\n    value_format: Value formatting mode - number, currency, percent, or duration.\n        Aliased as \"format\" in JSON for API compatibility.\n    precision: Decimal places to show (0-10).\n    show_trend: Whether to show up/down trend indicator.\n    trend_key: Data key for the comparison value when show_trend is True.\n    thresholds: Tuple of threshold configs for conditional coloring.\n    icon: Optional icon identifier to display with the metric.\n\nRaises:\n    ValueError: If show_trend is True but trend_key is not provided.\n\nExample:\n    Simple count metric::\n\n        config = ModelWidgetConfigMetricCard(\n            metric_key=\"active_users\",\n            label=\"Active Users\",\n            value_format=\"number\",\n            precision=0,\n        )",
+      "properties": {
+        "config_kind": {
+          "const": "metric_card",
+          "default": "metric_card",
+          "description": "Discriminator for widget config union",
+          "title": "Config Kind",
+          "type": "string"
+        },
+        "widget_type": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "default": "metric_card",
+          "description": "Widget type enum value"
+        },
+        "metric_key": {
+          "description": "Key to extract metric value from data",
+          "minLength": 1,
+          "title": "Metric Key",
+          "type": "string"
+        },
+        "label": {
+          "description": "Metric display label",
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Unit of measurement",
+          "title": "Unit"
+        },
+        "format": {
+          "default": "number",
+          "description": "How to format the value",
+          "enum": [
+            "number",
+            "currency",
+            "percent",
+            "duration"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "precision": {
+          "default": 2,
+          "description": "Decimal precision",
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Precision",
+          "type": "integer"
+        },
+        "show_trend": {
+          "default": false,
+          "description": "Show trend indicator",
+          "title": "Show Trend",
+          "type": "boolean"
+        },
+        "trend_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Key for trend comparison value",
+          "title": "Trend Key"
+        },
+        "thresholds": {
+          "default": [],
+          "description": "Color thresholds for the metric",
+          "items": {
+            "$ref": "#/$defs/ModelMetricThreshold"
+          },
+          "title": "Thresholds",
+          "type": "array"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Icon identifier",
+          "title": "Icon"
+        }
+      },
+      "required": [
+        "metric_key",
+        "label"
+      ],
+      "title": "ModelWidgetConfigMetricCard",
+      "type": "object"
+    },
+    "ModelWidgetConfigStatusGrid": {
+      "additionalProperties": false,
+      "description": "Configuration for status grid dashboard widgets.\n\nDisplays a grid of status indicators for monitoring the health of multiple\nsystems, services, or components. Each tile carries an upstream verdict; the\ngrid maps that verdict to presentation and never computes one.\n\nAttributes:\n    config_kind: Literal discriminator value, always \"status_grid\".\n    widget_type: Widget type enum, always STATUS_GRID.\n    items: Tiles to display.\n    columns: Number of columns in the grid layout (1-12).\n    show_labels: Whether to display the tile's own text label.\n    compact: Whether to use compact mode with smaller indicators.\n    severity_roles: How each severity renders \u2014 theme token name, text\n        label, icon. Every severity must be covered exactly once, with a\n        distinct label and a distinct icon.",
+      "properties": {
+        "config_kind": {
+          "const": "status_grid",
+          "default": "status_grid",
+          "description": "Discriminator for widget config union",
+          "title": "Config Kind",
+          "type": "string"
+        },
+        "widget_type": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "default": "status_grid",
+          "description": "Widget type enum value"
+        },
+        "items": {
+          "default": [],
+          "description": "Status items to display",
+          "items": {
+            "$ref": "#/$defs/ModelStatusItemConfig"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "columns": {
+          "default": 3,
+          "description": "Number of grid columns",
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Columns",
+          "type": "integer"
+        },
+        "show_labels": {
+          "default": true,
+          "description": "Show item labels",
+          "title": "Show Labels",
+          "type": "boolean"
+        },
+        "compact": {
+          "default": false,
+          "description": "Use compact display mode",
+          "title": "Compact",
+          "type": "boolean"
+        },
+        "severity_roles": {
+          "default": [
+            {
+              "severity": "critical",
+              "theme_color_token": "color_status_error",
+              "label": "Critical",
+              "icon": "octagon-x"
+            },
+            {
+              "severity": "attention",
+              "theme_color_token": "color_status_warning",
+              "label": "Attention",
+              "icon": "triangle-alert"
+            },
+            {
+              "severity": "unknown",
+              "theme_color_token": "color_status_info",
+              "label": "Unknown",
+              "icon": "question-diamond"
+            },
+            {
+              "severity": "nominal",
+              "theme_color_token": "color_status_success",
+              "label": "Nominal",
+              "icon": "check-circle"
+            }
+          ],
+          "description": "Presentation of each severity: theme token NAME, text label, icon. Carries no colour value \u2014 that is the theme instance's job.",
+          "items": {
+            "$ref": "#/$defs/ModelSeverityRole"
+          },
+          "title": "Severity Roles",
+          "type": "array"
+        }
+      },
+      "title": "ModelWidgetConfigStatusGrid",
+      "type": "object"
+    },
+    "ModelWidgetConfigTable": {
+      "additionalProperties": false,
+      "description": "Configuration for table-type dashboard widgets.\n\nDefines how a table widget displays tabular data with configurable\ncolumns, pagination, sorting, and visual styling options. Tables\nsupport client-side sorting and pagination with customizable page sizes.\n\nAttributes:\n    config_kind: Literal discriminator value, always \"table\".\n    widget_type: Widget type enum, always TABLE.\n    columns: Tuple of column configurations defining table structure.\n    page_size: Number of rows displayed per page (1-100).\n    show_pagination: Whether to show pagination controls.\n    default_sort_key: Column key to sort by initially, or None.\n    default_sort_direction: Sort direction (\"asc\" or \"desc\"). Only valid\n        when default_sort_key is set.\n    striped: Whether to alternate row background colors.\n    hover_highlight: Whether to highlight rows on mouse hover.\n\nRaises:\n    ValueError: If default_sort_direction is set without default_sort_key.\n\nExample:\n    Compact table without pagination::\n\n        config = ModelWidgetConfigTable(\n            columns=(col1, col2),\n            page_size=100,\n            show_pagination=False,\n            striped=False,\n        )",
+      "properties": {
+        "config_kind": {
+          "const": "table",
+          "default": "table",
+          "description": "Discriminator for widget config union",
+          "title": "Config Kind",
+          "type": "string"
+        },
+        "widget_type": {
+          "$ref": "#/$defs/EnumWidgetType",
+          "default": "table",
+          "description": "Widget type enum value"
+        },
+        "columns": {
+          "default": [],
+          "description": "Table column configurations",
+          "items": {
+            "$ref": "#/$defs/ModelTableColumnConfig"
+          },
+          "title": "Columns",
+          "type": "array"
+        },
+        "page_size": {
+          "default": 10,
+          "description": "Rows per page",
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Page Size",
+          "type": "integer"
+        },
+        "show_pagination": {
+          "default": true,
+          "description": "Show pagination controls",
+          "title": "Show Pagination",
+          "type": "boolean"
+        },
+        "default_sort_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Default column key to sort by",
+          "title": "Default Sort Key"
+        },
+        "default_sort_direction": {
+          "anyOf": [
+            {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Default sort direction (only used when default_sort_key is set)",
+          "title": "Default Sort Direction"
+        },
+        "striped": {
+          "default": true,
+          "description": "Alternate row colors",
+          "title": "Striped",
+          "type": "boolean"
+        },
+        "hover_highlight": {
+          "default": true,
+          "description": "Highlight row on hover",
+          "title": "Hover Highlight",
+          "type": "boolean"
+        }
+      },
+      "title": "ModelWidgetConfigTable",
+      "type": "object"
+    },
+    "ModelWidgetProvenance": {
+      "additionalProperties": false,
+      "description": "Publishing origin of a widget envelope.",
+      "properties": {
+        "pack_namespace": {
+          "description": "Namespace that published this widget (e.g. 'onex.packs.platform')",
+          "minLength": 1,
+          "title": "Pack Namespace",
+          "type": "string"
+        },
+        "pack_name": {
+          "description": "Name of the publishing pack within its namespace",
+          "minLength": 1,
+          "title": "Pack Name",
+          "type": "string"
+        },
+        "pack_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Version of the publishing pack this widget shipped in"
+        },
+        "source_revision": {
+          "description": "Full 40-character git object id of the source the pack was built from. Abbreviated revisions are rejected: they name a prefix, not a commit.",
+          "maxLength": 40,
+          "minLength": 40,
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Source Revision",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pack_namespace",
+        "pack_name",
+        "pack_version",
+        "source_revision"
+      ],
+      "title": "ModelWidgetProvenance",
+      "type": "object"
+    },
+    "ModelWidgetEnvelope": {
+      "additionalProperties": false,
+      "description": "A complete, versioned, sealed widget contract.\n\nThree versions live here and they answer different questions:\n``envelope_version`` is the version of *this format*, ``widget_version`` is\nthe version of *this widget as published*, and\n``component.contract_version`` is the version of the *component contract*\nthe widget binds. A consumer that must reject an envelope it cannot parse\nreads the first; a consumer choosing between two published widgets reads the\nsecond; a renderer deciding whether it can render at all reads the third.",
+      "properties": {
+        "envelope_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Version of the envelope format itself, not of any widget"
+        },
+        "widget_id": {
+          "description": "Stable, namespaced widget identifier (e.g. 'onex.widget.system_health')",
+          "minLength": 1,
+          "title": "Widget Id",
+          "type": "string"
+        },
+        "widget_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Version of this widget as published by its pack"
+        },
+        "component": {
+          "$ref": "#/$defs/ModelComponentContract",
+          "description": "Component contract half: identity, kind, bindings, actions, permission, evidence requirements, empty-state reasons"
+        },
+        "config": {
+          "description": "Discriminated widget configuration, keyed by config_kind",
+          "discriminator": {
+            "mapping": {
+              "chart": "#/$defs/ModelWidgetConfigChart",
+              "event_feed": "#/$defs/ModelWidgetConfigEventFeed",
+              "metric_card": "#/$defs/ModelWidgetConfigMetricCard",
+              "status_grid": "#/$defs/ModelWidgetConfigStatusGrid",
+              "table": "#/$defs/ModelWidgetConfigTable"
+            },
+            "propertyName": "config_kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ModelWidgetConfigChart"
+            },
+            {
+              "$ref": "#/$defs/ModelWidgetConfigTable"
+            },
+            {
+              "$ref": "#/$defs/ModelWidgetConfigMetricCard"
+            },
+            {
+              "$ref": "#/$defs/ModelWidgetConfigStatusGrid"
+            },
+            {
+              "$ref": "#/$defs/ModelWidgetConfigEventFeed"
+            }
+          ],
+          "title": "Config"
+        },
+        "provenance": {
+          "$ref": "#/$defs/ModelWidgetProvenance",
+          "description": "Which pack published this widget, at which source revision"
+        },
+        "content_digest": {
+          "description": "SHA-256 over this envelope's canonical JSON excluding this field, as 'sha256:<hex>'. Lets a consumer validate a discovered widget without trusting the publisher.",
+          "title": "Content Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "envelope_version",
+        "widget_id",
+        "widget_version",
+        "component",
+        "config",
+        "provenance",
+        "content_digest"
+      ],
+      "title": "ModelWidgetEnvelope",
+      "type": "object"
+    },
+    "ModelReceiptCheckResult": {
+      "additionalProperties": false,
+      "description": "Outcome of verifying a single evidence check's receipt.",
+      "properties": {
+        "ticket_id": {
+          "minLength": 1,
+          "title": "Ticket Id",
+          "type": "string"
+        },
+        "evidence_item_id": {
+          "minLength": 1,
+          "title": "Evidence Item Id",
+          "type": "string"
+        },
+        "check_type": {
+          "minLength": 1,
+          "title": "Check Type",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ticket_id",
+        "evidence_item_id",
+        "check_type",
+        "passed",
+        "reason"
+      ],
+      "title": "ModelReceiptCheckResult",
+      "type": "object"
+    },
+    "ModelReceiptGateResult": {
+      "additionalProperties": false,
+      "description": "Aggregate outcome of the receipt-gate on a PR.",
+      "properties": {
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "skipped": {
+          "default": false,
+          "title": "Skipped",
+          "type": "boolean"
+        },
+        "friction_logged": {
+          "default": false,
+          "title": "Friction Logged",
+          "type": "boolean"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/ModelReceiptCheckResult"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "tickets_checked": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tickets Checked",
+          "type": "array"
+        }
+      },
+      "required": [
+        "passed"
+      ],
+      "title": "ModelReceiptGateResult",
+      "type": "object"
+    },
+    "ModelReviewPacket": {
+      "additionalProperties": false,
+      "description": "A deterministic, content-addressed packet for a contract-driven review.\n\n``source_contract_hash``, ``ir_hash``, and ``patch_hash`` are each a\n``sha256:<64 lowercase hex>`` reference to the source contract, the derived\nintermediate representation, and the produced patch respectively.\n``validation_pipeline_version`` is the semantic version of the pipeline that\nproduced the packet. ``receipt_gate_result`` is the typed receipt-gate\noutcome for the change. ``compute_packet_hash`` yields a stable hash over the\ncanonical serialization so equal packets hash equally.",
+      "properties": {
+        "source_contract_hash": {
+          "description": "sha256:<hex> reference to the source contract under review",
+          "title": "Source Contract Hash",
+          "type": "string"
+        },
+        "ir_hash": {
+          "description": "sha256:<hex> reference to the IR derived from the contract",
+          "title": "Ir Hash",
+          "type": "string"
+        },
+        "patch_hash": {
+          "description": "sha256:<hex> reference to the patch produced for the change",
+          "title": "Patch Hash",
+          "type": "string"
+        },
+        "validation_pipeline_version": {
+          "$ref": "#/$defs/ModelSemVer",
+          "description": "Semantic version of the validation pipeline that produced this packet"
+        },
+        "receipt_gate_result": {
+          "$ref": "#/$defs/ModelReceiptGateResult",
+          "description": "Typed receipt-gate outcome for the reviewed change"
+        }
+      },
+      "required": [
+        "source_contract_hash",
+        "ir_hash",
+        "patch_hash",
+        "validation_pipeline_version",
+        "receipt_gate_result"
+      ],
+      "title": "ModelReviewPacket",
+      "type": "object"
+    },
+    "ModelOmniStudioEvidenceBundle": {
+      "additionalProperties": false,
+      "description": "A deterministic, order-independent bundle of review packets.\n\n``session_id`` is the stable semantic identifier for the OmniStudio session\nthat produced the bundle. ``packets`` is the immutable tuple of review\npackets gathered during the session. ``compute_bundle_fingerprint`` hashes\nthe sorted per-packet hashes so bundle equality does not depend on packet\nordering.",
+      "properties": {
+        "session_id": {
+          "description": "Stable semantic identifier for the OmniStudio review session",
+          "minLength": 1,
+          "title": "Session Id",
+          "type": "string"
+        },
+        "packets": {
+          "default": [],
+          "description": "Immutable tuple of review packets gathered in this session",
+          "items": {
+            "$ref": "#/$defs/ModelReviewPacket"
+          },
+          "title": "Packets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "title": "ModelOmniStudioEvidenceBundle",
+      "type": "object"
+    }
+  }
+}

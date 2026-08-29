@@ -16,7 +16,17 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'storybook-static/**', 'node_modules/**', 'coverage/**'],
+    ignores: [
+      'dist/**',
+      'storybook-static/**',
+      'node_modules/**',
+      'coverage/**',
+      // Generated artifacts are governed by `generated-artifact-parity` (plan
+      // §2.3) — they must equal a fresh compile of their declared source — not
+      // by hand-style rules. Linting them would only ever produce pressure to
+      // hand-edit an artifact that must never be hand-edited.
+      'src/generated/onex-models.ts',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
