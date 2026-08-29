@@ -4,12 +4,15 @@
 /**
  * `@omninode/omniui` — the OmniNode web component library and renderer.
  *
- * The public surface is deliberately small at Phase 1A. This phase produces a
- * **workspace**, not components: plan §4 Phase 1A's success condition is "the
- * operator can sit down and author components", and D5 assigns the authoring
- * of the component types and the token values to the operator (Phase 1B).
- * What ships here is the seam those components will bind — the theme binding
- * §2.5 lists as the one thing to build new.
+ * Phase 1A shipped the workspace and the theme binding. Phase 1B adds the
+ * seam the component types bind through: envelope acceptance, seal
+ * verification, binding resolution, and the declared empty state a component
+ * renders when a read did not resolve.
+ *
+ * The one rule the surface encodes: a **host** performs reads and hands the
+ * results in; a **component** renders what it was handed. That is plan §2.2's
+ * binding rule and gate G1B.1, and it is why `HostDatasets` is a parameter
+ * rather than something a component could go and get.
  */
 
 export { ThemeProvider, useTheme, type ThemeProviderProps } from './theme/ThemeProvider.js';
@@ -32,3 +35,31 @@ export {
   type ThemeTokenName,
   type ThemeTokenSet,
 } from './theme/theme-token-set.js';
+
+// The widget-envelope binding seam (OMN-16935, Phase 1B.1). A host accepts an
+// envelope, resolves its declared bindings, and hands the results to a
+// component; a component performs no read of its own (gate G1B.1).
+export {
+  acceptEnvelope,
+  acceptEnvelopeNode,
+  canonicalJson,
+  computeEnvelopeDigest,
+  isRawNumber,
+  narrowJsonSource,
+  orderRows,
+  parseJsonSource,
+  requireBinding,
+  resolveBinding,
+  sha256Hex,
+  sha256HexBytes,
+  type BindingResolution,
+  type BoundDataset,
+  type HostDatasets,
+  type JsonSourceValue,
+  type ProjectionRow,
+  type RawNumber,
+  type ResolvedBinding,
+  type UnresolvedBinding,
+} from './binding/index.js';
+export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
+export { Icon, hasIcon, type IconProps } from './components/Icon.js';

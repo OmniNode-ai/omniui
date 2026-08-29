@@ -10,5 +10,16 @@
     "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.stories.tsx"]
+  // Fixtures are the substrate the tests and stories are measured on, not part
+  // of the library. They are excluded from the published build for two
+  // reasons: nothing in `src/index.ts` exports them, and the widget captures
+  // are loaded with Vite's `?raw` suffix, which is a bundler feature a plain
+  // Node consumer of `dist/` could not resolve. Shipping modules that cannot
+  // be imported would be worse than shipping nothing.
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.stories.tsx",
+    "src/fixtures/**"
+  ]
 }

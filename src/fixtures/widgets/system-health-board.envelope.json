@@ -1,0 +1,304 @@
+{
+  "_capture": {
+    "what": "Sealed by scripts/capture_widget_envelopes.py against omnibase_core's own seal_widget_envelope. The seal is re-derived in TypeScript by src/fixtures/widgets/widgets.test.ts, so Python and TypeScript are proven to agree on the canonical form rather than assumed to. Do not hand-edit: editing a byte without re-sealing makes the fixture fail its own seal, which is the behaviour under test."
+  },
+  "envelope": {
+    "envelope_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "widget_id": "onex.widget.system_health_board",
+    "widget_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "component": {
+      "component_id": "onex.component.system_health_board",
+      "component_kind": "status_grid",
+      "title": "System health",
+      "contract_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "data_bindings": [
+        {
+          "binding_id": "flow.projection-event-chain",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.gateway-link-health",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.gateway-forwarder",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.version-skew-detector",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.ticket-pipeline",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "chain.liveness",
+          "projection_topic": "onex.snapshot.projection.chain-liveness.v1",
+          "ordering_authority_field": "evaluated_at",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "chain_id",
+            "liveness_state",
+            "evaluated_at"
+          ],
+          "cursor_field": null
+        }
+      ],
+      "actions": [],
+      "evidence_requirements": [],
+      "permission": null,
+      "supported_empty_state_reasons": [
+        "no-data",
+        "missing-field",
+        "upstream-blocked",
+        "schema-invalid"
+      ]
+    },
+    "config": {
+      "config_kind": "status_grid",
+      "widget_type": "status_grid",
+      "items": [
+        {
+          "key": "flow.projection-event-chain",
+          "label": "Event-chain projection",
+          "icon": "queue",
+          "verdict": {
+            "severity": "nominal",
+            "status_value": "FLOWING",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": {
+            "kind": "count",
+            "value": 1840.0,
+            "label": "Messages in",
+            "unit": null
+          }
+        },
+        {
+          "key": "flow.gateway-link-health",
+          "label": "Gateway link health",
+          "icon": "queue",
+          "verdict": {
+            "severity": "critical",
+            "status_value": "STALLED",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": {
+            "kind": "count",
+            "value": 15750.0,
+            "label": "Messages in",
+            "unit": null
+          }
+        },
+        {
+          "key": "flow.gateway-forwarder",
+          "label": "Gateway forwarder",
+          "icon": "queue",
+          "verdict": {
+            "severity": "critical",
+            "status_value": "STARVED",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": {
+            "kind": "count",
+            "value": 0.0,
+            "label": "Messages in",
+            "unit": null
+          }
+        },
+        {
+          "key": "flow.version-skew-detector",
+          "label": "Version-skew detector",
+          "icon": "queue",
+          "verdict": {
+            "severity": "attention",
+            "status_value": "IDLE",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": {
+            "kind": "count",
+            "value": 0.0,
+            "label": "Messages in",
+            "unit": null
+          }
+        },
+        {
+          "key": "flow.ticket-pipeline",
+          "label": "Ticket pipeline",
+          "icon": "queue",
+          "verdict": {
+            "severity": "unknown",
+            "status_value": "UNKNOWN",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": null
+        },
+        {
+          "key": "chain.liveness",
+          "label": "Chain liveness",
+          "icon": "chain",
+          "verdict": {
+            "severity": "unknown",
+            "status_value": "NO_PROJECTION",
+            "policy_id": "onex.policy.consumer-flow-severity",
+            "policy_version": {
+              "major": 1,
+              "minor": 0,
+              "patch": 0,
+              "prerelease": null,
+              "build": null
+            },
+            "policy_digest": "sha256:03e1c02d0feb250f20c944360bf50fa9c69808ede347bc829a7b0c5c59491ea0"
+          },
+          "secondary": null
+        }
+      ],
+      "columns": 3,
+      "show_labels": true,
+      "compact": false,
+      "severity_roles": [
+        {
+          "severity": "nominal",
+          "theme_color_token": "color_status_success",
+          "label": "Nominal",
+          "icon": "circle-check"
+        },
+        {
+          "severity": "attention",
+          "theme_color_token": "color_status_warning",
+          "label": "Attention",
+          "icon": "triangle-alert"
+        },
+        {
+          "severity": "critical",
+          "theme_color_token": "color_status_error",
+          "label": "Critical",
+          "icon": "octagon-alert"
+        },
+        {
+          "severity": "unknown",
+          "theme_color_token": "color_text_disabled",
+          "label": "Unknown",
+          "icon": "question-diamond"
+        }
+      ]
+    },
+    "provenance": {
+      "pack_namespace": "onex.packs.platform",
+      "pack_name": "platform-observability",
+      "pack_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "source_revision": "3bbd8efa1664e2625f9a9862b0bf3b56675d7181"
+    },
+    "content_digest": "sha256:34f98450308f5862460f0a16960d65a943133ac8e9c422b1b49ddb25a838e7f0"
+  }
+}
