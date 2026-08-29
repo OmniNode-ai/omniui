@@ -37,8 +37,8 @@ function TokenRow({ token }: { readonly token: string }): ReactNode {
             aria-label={`swatch for ${token}`}
             style={{
               display: 'inline-block',
-              inlineSize: '2rem',
-              blockSize: '1rem',
+              inlineSize: tokenRef('spacing_xl'),
+              blockSize: tokenRef('spacing_md'),
               background: tokenRef(token),
               border: `1px solid ${tokenRef('color_border_default')}`,
               borderRadius: tokenRef('border_radius_md'),

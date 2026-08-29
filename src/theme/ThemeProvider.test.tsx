@@ -13,7 +13,14 @@ import {
   tokenRef,
   tokenVarName,
 } from './css-variables.js';
-import { FIXTURE_THEME_PAPER, FIXTURE_THEME_SLATE } from './theme-fixtures.js';
+import { fixtureTheme } from '../fixtures/index.js';
+
+// The two published themes the tests exercise. Hand-authored fixture themes were
+// deleted in OMN-16888: they were a second source of token VALUES living outside
+// the catalog, which is the thing `no-color-inline` exists to prevent — and a
+// rule its own repo has to be exempted from is a rule that will be turned off.
+const DARK = fixtureTheme('onex.theme.dark');
+const LIGHT = fixtureTheme('onex.theme.light');
 import { assertReportableTheme, type Theme } from './theme-token-set.js';
 
 function AccentSwatch(): ReactNode {
@@ -37,7 +44,7 @@ describe('tokenVarName / tokenRef', () => {
 describe('ThemeProvider', () => {
   it('publishes every token as a custom property on the scope element', () => {
     const { container } = render(
-      <ThemeProvider theme={FIXTURE_THEME_SLATE}>
+      <ThemeProvider theme={DARK}>
         <AccentSwatch />
       </ThemeProvider>,
     );
@@ -47,30 +54,30 @@ describe('ThemeProvider', () => {
   });
 
   it('reports theme identity and digest on the rendered surface (G-U1 input)', () => {
-    const { container } = render(<ThemeProvider theme={FIXTURE_THEME_SLATE}>x</ThemeProvider>);
+    const { container } = render(<ThemeProvider theme={DARK}>x</ThemeProvider>);
     const scope = container.firstElementChild as HTMLElement;
-    expect(scope.style.getPropertyValue(THEME_ID_VAR)).toBe('fixture.theme.slate');
+    expect(scope.style.getPropertyValue(THEME_ID_VAR)).toBe('onex.theme.dark');
     expect(scope.style.getPropertyValue(THEME_DIGEST_VAR)).toBe(
-      FIXTURE_THEME_SLATE.identity.contentDigest,
+      DARK.identity.contentDigest,
     );
-    expect(scope.dataset.onexTheme).toBe('fixture.theme.slate');
+    expect(scope.dataset.onexTheme).toBe('onex.theme.dark');
   });
 
   it('changes every published value when the activated instance changes', () => {
     const { container, rerender } = render(
-      <ThemeProvider theme={FIXTURE_THEME_SLATE}>x</ThemeProvider>,
+      <ThemeProvider theme={DARK}>x</ThemeProvider>,
     );
     const read = (): string =>
       (container.firstElementChild as HTMLElement).style.getPropertyValue(
         '--onex-color-background-primary',
       );
     expect(read()).toBe('#0f172a');
-    rerender(<ThemeProvider theme={FIXTURE_THEME_PAPER}>x</ThemeProvider>);
+    rerender(<ThemeProvider theme={LIGHT}>x</ThemeProvider>);
     expect(read()).toBe('#ffffff');
   });
 
   it('emits token declarations in a stable, sorted order', () => {
-    const { container } = render(<ThemeProvider theme={FIXTURE_THEME_SLATE}>x</ThemeProvider>);
+    const { container } = render(<ThemeProvider theme={DARK}>x</ThemeProvider>);
     const style = (container.firstElementChild as HTMLElement).getAttribute('style') ?? '';
     const tokenProps = [...style.matchAll(/--onex-([a-z0-9-]+):/g)]
       .map((m) => m[1]!)
@@ -80,11 +87,11 @@ describe('ThemeProvider', () => {
 
   it('exposes the active theme to descendants', () => {
     render(
-      <ThemeProvider theme={FIXTURE_THEME_PAPER}>
+      <ThemeProvider theme={LIGHT}>
         <ThemeReporter />
       </ThemeProvider>,
     );
-    expect(screen.getByTestId('reported').textContent).toBe('fixture.theme.paper@1.0.0');
+    expect(screen.getByTestId('reported').textContent).toBe('onex.theme.light@1.0.0');
   });
 
   it('refuses to render outside a provider rather than inventing a value', () => {
@@ -99,16 +106,18 @@ describe('themeToCssProperties', () => {
     // `theme_id` normalises to `--onex-theme-id` and would otherwise overwrite
     // the reported identity, leaving the CSS disagreeing with data-onex-theme.
     const colliding: Theme = {
-      ...FIXTURE_THEME_SLATE,
-      tokens: { ...FIXTURE_THEME_SLATE.tokens, theme_id: 'not-the-real-id' },
+      ...DARK,
+      tokens: { ...DARK.tokens, theme_id: 'not-the-real-id' },
     };
     expect(() => themeToCssProperties(colliding)).toThrow(/collides with/);
   });
 
   it('refuses two tokens that normalise to the same custom property', () => {
     const colliding: Theme = {
-      ...FIXTURE_THEME_SLATE,
-      tokens: { ...FIXTURE_THEME_SLATE.tokens, 'color-accent-primary': '#000000' },
+      ...DARK,
+      // onex-token-exempt: the colliding literal IS the assertion — this test proves
+      // themeToCssProperties refuses two tokens normalising to one custom property.
+      tokens: { ...DARK.tokens, 'color-accent-primary': '#000000' },
     };
     expect(() => themeToCssProperties(colliding)).toThrow(/collides with/);
   });
@@ -117,8 +126,8 @@ describe('themeToCssProperties', () => {
 describe('assertReportableTheme', () => {
   it('rejects a theme that cannot report a well-formed digest', () => {
     const unreportable: Theme = {
-      ...FIXTURE_THEME_SLATE,
-      identity: { ...FIXTURE_THEME_SLATE.identity, contentDigest: 'sha256:nope' },
+      ...DARK,
+      identity: { ...DARK.identity, contentDigest: 'sha256:nope' },
     };
     expect(() => {
       assertReportableTheme(unreportable);
@@ -126,7 +135,7 @@ describe('assertReportableTheme', () => {
   });
 
   it('rejects a theme carrying no tokens', () => {
-    const empty: Theme = { ...FIXTURE_THEME_SLATE, tokens: {} };
+    const empty: Theme = { ...DARK, tokens: {} };
     expect(() => {
       assertReportableTheme(empty);
     }).toThrow(/carries no tokens/);

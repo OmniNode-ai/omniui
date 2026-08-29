@@ -14,6 +14,8 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
+import onex from './eslint-rules/index.js';
+
 export default tseslint.config(
   {
     ignores: [
@@ -25,6 +27,10 @@ export default tseslint.config(
       // §2.3) — they must equal a fresh compile of their declared source — not
       // by hand-style rules. Linting them would only ever produce pressure to
       // hand-edit an artifact that must never be hand-edited.
+      // Generated artifacts are governed by `onex/generated-artifact-parity`
+      // and by the byte-comparing parity checkers it declares, not by hand-style
+      // rules whose only remedy would be to edit an artifact that must never be
+      // hand-edited. They are re-included below for the parity rule alone.
       'src/generated/onex-models.ts',
       'src/generated/tokens/**',
     ],
@@ -48,6 +54,31 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+  {
+    // The five scoped semantic-token rules (plan §2.3, OMN-16888). Errors, never
+    // warnings: a warn-only gate is a gate nobody has to pass.
+    files: ['src/**/*.ts', 'src/**/*.tsx', '.storybook/**/*.ts'],
+    plugins: { onex },
+    rules: {
+      'onex/no-color-inline': 'error',
+      'onex/no-spacing-inline': 'error',
+      'onex/no-unsourced-css': 'error',
+      'onex/svg-and-chart-inputs': 'error',
+    },
+  },
+  {
+    // `generated-artifact-parity` is the one rule that must see the generated
+    // files themselves — it is what proves each of them is re-derivable. It runs
+    // with type checking disabled because a generated artifact's style is not
+    // this repo's business; only its provenance is.
+    files: ['src/generated/**/*.ts', 'src/generated/**/*.css'],
+    ignores: [],
+    plugins: { onex },
+    extends: [tseslint.configs.disableTypeChecked],
+    rules: {
+      'onex/generated-artifact-parity': 'error',
     },
   },
   {
