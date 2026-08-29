@@ -34,6 +34,11 @@ const ICON_PATHS: ReadonlyMap<string, string> = new Map([
   ['column-missing', 'M3 4h18v16H3ZM9 4v16M15 4v16M9.8 9.8l4.4 4.4M14.2 9.8l-4.4 4.4'],
   ['plug-off', 'M8 2v6M16 2v6M5.5 8h13v3a6.5 6.5 0 0 1-13 0ZM12 17.5V22M3 3l18 18'],
   ['file-invalid', 'M6 2h8l4 4v16H6ZM14 2v4h4M9.5 12l5 5M14.5 12l-5 5'],
+  // Trend glyphs (OMN-16938). Arrows, so direction survives greyscale — a
+  // trend rendered as a coloured dot says nothing in a monochrome screenshot.
+  ['trend-up', 'M4 18 10.5 11.5l4 4L20 6M20 6h-5M20 6v5'],
+  ['trend-down', 'M4 6 10.5 12.5l4-4L20 18M20 18h-5M20 18v-5'],
+  ['trend-flat', 'M4 12h13M17 9l3 3-3 3'],
   // Monitored-thing glyphs, for a tile's own optional icon.
   ['queue', 'M3 6h18M3 12h18M3 18h12'],
   ['chain', 'M9.5 14.5 7 17a3.5 3.5 0 0 1-5-5l2.5-2.5M14.5 9.5 17 7a3.5 3.5 0 0 1 5 5l-2.5 2.5M8.5 15.5l7-7'],
