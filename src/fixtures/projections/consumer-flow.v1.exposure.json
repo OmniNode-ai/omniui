@@ -1,0 +1,49 @@
+{
+  "_capture": {
+    "what": "The declared projection_api exposure for onex.snapshot.projection.consumer-flow.v1.",
+    "source_repo": "OmniNode-ai/omnimarket",
+    "source_path": "src/omnimarket/nodes/node_projection_consumer_flow/contract.yaml",
+    "source_block": "projection_api",
+    "source_ticket": "OMN-16777",
+    "why_this_and_not_a_live_read": "A fixture scraped from an endpoint captures whatever that endpoint happened to be serving. This is the contract's own statement of what it will serve, so a later divergence is falsifiable against something.",
+    "live_cross_check": "A read-only GET against the .201 dev lane's projection API returned backing='bus' and rows carrying exactly these fourteen columns. The cross-check agreed; it is not the source."
+  },
+  "expose": true,
+  "topic": "onex.snapshot.projection.consumer-flow.v1",
+  "table": "consumer_flow_windows",
+  "schema": "omnidash_analytics",
+  "columns": [
+    "consumer_group",
+    "topic",
+    "window_start",
+    "window_end",
+    "node_id",
+    "ingest_sequence",
+    "messages_in",
+    "messages_out",
+    "messages_dlq",
+    "handler_errors",
+    "upstream_produced",
+    "upstream_evidence",
+    "flow_state",
+    "evaluated_at"
+  ],
+  "order_by": "window_end DESC",
+  "freshness_column": "window_end",
+  "limit": 500,
+  "bus_backed": true,
+  "key_columns": ["consumer_group", "topic", "window_start"],
+  "tenant_column": null,
+  "value_domains": {
+    "flow_state": ["FLOWING", "STALLED", "STARVED", "IDLE", "UNKNOWN"],
+    "upstream_evidence": ["PRODUCED", "SILENT", "NONE"]
+  },
+  "nullable_columns": [
+    "messages_in",
+    "messages_out",
+    "messages_dlq",
+    "handler_errors",
+    "upstream_produced"
+  ],
+  "_nullability_note": "The counters are int|None and that distinction is the point of OMN-16777: null marks a window that was never observed (flow_state UNKNOWN), which is a different fact from a window observed to have carried nothing. A renderer that coerces null to 0 reintroduces the exact false-green the projection exists to close."
+}

@@ -1,0 +1,249 @@
+{
+  "_capture": {
+    "captured_via": "omnibase_core.utils.util_theme_catalog.load_packaged_theme_catalog() + load_theme_instance()",
+    "digests": "content_digest on each catalog entry is sha256 over the RFC-8785 canonical JSON of the instance, computed by compute_theme_content_digest(). Reproduce it there, never here.",
+    "source_commit": "872beef0397e81064e1212ad5d9d73f173ea3f84",
+    "source_path": "src/omnibase_core/contracts/themes/<theme_id>/<instance_revision>.yaml",
+    "source_repo": "OmniNode-ai/omnibase_core",
+    "what": "The packaged ModelThemeCatalog and every ModelThemeInstance it points at.",
+    "why_not_a_live_read": "These are packaged instance DOCUMENTS validated against ModelRendererThemeContract, i.e. the declared exposure itself. There is no endpoint to scrape and there should not be one."
+  },
+  "catalog": {
+    "catalog_version": {
+      "build": null,
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null
+    },
+    "entries": [
+      {
+        "content_digest": "sha256:f73b1716faa9d73f53c0331ded08ff5c72d2d5217a05c5fdb91c7ad3ab26c26f",
+        "instance_revision": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "schema_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "source_path": "onex.theme.dark/1.0.0.yaml",
+        "theme_id": "onex.theme.dark"
+      },
+      {
+        "content_digest": "sha256:aa8ec6e7434ace76186ef634be874fc1e70e48e2fd96cd0c2cb729ef9adf5c3a",
+        "instance_revision": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "schema_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "source_path": "onex.theme.light/1.0.0.yaml",
+        "theme_id": "onex.theme.light"
+      },
+      {
+        "content_digest": "sha256:72877506f4c236713670175a41c91944b9ad09eab277bffa94d6847a47c33d28",
+        "instance_revision": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "schema_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "source_path": "onex.theme.warm/1.0.0.yaml",
+        "theme_id": "onex.theme.warm"
+      }
+    ]
+  },
+  "instances": {
+    "onex.theme.dark": {
+      "instance_revision": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "schema_version": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "summary": "Default dark theme: deep slate surfaces, indigo accent. The theme the control-plane surfaces render by default.",
+      "theme_id": "onex.theme.dark",
+      "tokens": {
+        "border_radius_lg": "1rem",
+        "border_radius_md": "0.5rem",
+        "border_radius_sm": "0.25rem",
+        "color_accent_primary": "#6366f1",
+        "color_accent_secondary": "#818cf8",
+        "color_background_elevated": "#334155",
+        "color_background_primary": "#0f172a",
+        "color_background_secondary": "#1e293b",
+        "color_border_default": "#334155",
+        "color_border_strong": "#475569",
+        "color_status_error": "#ef4444",
+        "color_status_info": "#38bdf8",
+        "color_status_success": "#22c55e",
+        "color_status_warning": "#f59e0b",
+        "color_text_disabled": "#475569",
+        "color_text_primary": "#f8fafc",
+        "color_text_secondary": "#94a3b8",
+        "contract_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "font_family_base": "'Inter', system-ui, sans-serif",
+        "font_size_lg": "1.125rem",
+        "font_size_md": "1rem",
+        "font_size_sm": "0.875rem",
+        "font_weight_bold": "700",
+        "font_weight_normal": "400",
+        "spacing_lg": "1.5rem",
+        "spacing_md": "1rem",
+        "spacing_sm": "0.5rem",
+        "spacing_xl": "2rem",
+        "spacing_xs": "0.25rem",
+        "theme_id": "onex.theme.dark"
+      }
+    },
+    "onex.theme.light": {
+      "instance_revision": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "schema_version": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "summary": "Default light theme: neutral slate surfaces, indigo accent, WCAG-AA contrast for body text on every declared surface.",
+      "theme_id": "onex.theme.light",
+      "tokens": {
+        "border_radius_lg": "1rem",
+        "border_radius_md": "0.5rem",
+        "border_radius_sm": "0.25rem",
+        "color_accent_primary": "#4f46e5",
+        "color_accent_secondary": "#6366f1",
+        "color_background_elevated": "#ffffff",
+        "color_background_primary": "#ffffff",
+        "color_background_secondary": "#f8fafc",
+        "color_border_default": "#e2e8f0",
+        "color_border_strong": "#cbd5e1",
+        "color_status_error": "#b91c1c",
+        "color_status_info": "#0369a1",
+        "color_status_success": "#15803d",
+        "color_status_warning": "#b45309",
+        "color_text_disabled": "#94a3b8",
+        "color_text_primary": "#0f172a",
+        "color_text_secondary": "#475569",
+        "contract_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "font_family_base": "'Inter', system-ui, sans-serif",
+        "font_size_lg": "1.125rem",
+        "font_size_md": "1rem",
+        "font_size_sm": "0.875rem",
+        "font_weight_bold": "700",
+        "font_weight_normal": "400",
+        "spacing_lg": "1.5rem",
+        "spacing_md": "1rem",
+        "spacing_sm": "0.5rem",
+        "spacing_xl": "2rem",
+        "spacing_xs": "0.25rem",
+        "theme_id": "onex.theme.light"
+      }
+    },
+    "onex.theme.warm": {
+      "instance_revision": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "schema_version": {
+        "build": null,
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null
+      },
+      "summary": "Warm dark theme: stone surfaces and an amber accent, for long-session operator consoles where the indigo accent reads cold.",
+      "theme_id": "onex.theme.warm",
+      "tokens": {
+        "border_radius_lg": "1rem",
+        "border_radius_md": "0.5rem",
+        "border_radius_sm": "0.25rem",
+        "color_accent_primary": "#ea580c",
+        "color_accent_secondary": "#fb923c",
+        "color_background_elevated": "#44403c",
+        "color_background_primary": "#1c1917",
+        "color_background_secondary": "#292524",
+        "color_border_default": "#44403c",
+        "color_border_strong": "#57534e",
+        "color_status_error": "#ef4444",
+        "color_status_info": "#22d3ee",
+        "color_status_success": "#84cc16",
+        "color_status_warning": "#f59e0b",
+        "color_text_disabled": "#78716c",
+        "color_text_primary": "#fafaf9",
+        "color_text_secondary": "#d6d3d1",
+        "contract_version": {
+          "build": null,
+          "major": 1,
+          "minor": 0,
+          "patch": 0,
+          "prerelease": null
+        },
+        "font_family_base": "'Inter', system-ui, sans-serif",
+        "font_size_lg": "1.125rem",
+        "font_size_md": "1rem",
+        "font_size_sm": "0.875rem",
+        "font_weight_bold": "700",
+        "font_weight_normal": "400",
+        "spacing_lg": "1.5rem",
+        "spacing_md": "1rem",
+        "spacing_sm": "0.5rem",
+        "spacing_xl": "2rem",
+        "spacing_xs": "0.25rem",
+        "theme_id": "onex.theme.warm"
+      }
+    }
+  }
+}
