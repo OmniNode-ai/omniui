@@ -63,3 +63,4 @@ export {
 } from './binding/index.js';
 export { EmptyState, type EmptyStateProps } from './components/EmptyState.js';
 export { Icon, hasIcon, type IconProps } from './components/Icon.js';
+export { StatusGrid, type StatusGridProps } from './components/StatusGrid.js';
