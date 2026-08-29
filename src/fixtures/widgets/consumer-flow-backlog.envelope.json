@@ -1,0 +1,136 @@
+{
+  "_capture": {
+    "what": "Sealed by scripts/capture_widget_envelopes.py against omnibase_core's own seal_widget_envelope. The seal is re-derived in TypeScript by src/fixtures/widgets/widgets.test.ts, so Python and TypeScript are proven to agree on the canonical form rather than assumed to. Do not hand-edit: editing a byte without re-sealing makes the fixture fail its own seal, which is the behaviour under test."
+  },
+  "envelope": {
+    "envelope_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "widget_id": "onex.widget.consumer_flow_backlog",
+    "widget_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "component": {
+      "component_id": "onex.component.consumer_flow_backlog",
+      "component_kind": "metric_card",
+      "title": "Consumer intake",
+      "contract_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "data_bindings": [
+        {
+          "binding_id": "flow.projection-event-chain",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.gateway-link-health",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.gateway-forwarder",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.version-skew-detector",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        },
+        {
+          "binding_id": "flow.ticket-pipeline",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "descending",
+          "required_fields": [
+            "consumer_group",
+            "flow_state",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        }
+      ],
+      "actions": [],
+      "evidence_requirements": [],
+      "permission": null,
+      "supported_empty_state_reasons": [
+        "no-data",
+        "missing-field",
+        "upstream-blocked",
+        "schema-invalid"
+      ]
+    },
+    "config": {
+      "config_kind": "metric_card",
+      "widget_type": "metric_card",
+      "metric_key": "messages_in",
+      "label": "Messages in",
+      "unit": null,
+      "value_format": "number",
+      "precision": 0,
+      "show_trend": true,
+      "trend_key": "messages_out",
+      "thresholds": [],
+      "icon": "queue"
+    },
+    "provenance": {
+      "pack_namespace": "onex.packs.platform",
+      "pack_name": "platform-observability",
+      "pack_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "source_revision": "3bbd8efa1664e2625f9a9862b0bf3b56675d7181"
+    },
+    "content_digest": "sha256:999553c8d4cc1555e268fe527f2cc22eec8df980997cd6927621d8e276dbb8b7"
+  }
+}

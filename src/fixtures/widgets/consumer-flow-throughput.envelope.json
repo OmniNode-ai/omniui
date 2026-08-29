@@ -1,0 +1,103 @@
+{
+  "_capture": {
+    "what": "Sealed by scripts/capture_widget_envelopes.py against omnibase_core's own seal_widget_envelope. The seal is re-derived in TypeScript by src/fixtures/widgets/widgets.test.ts, so Python and TypeScript are proven to agree on the canonical form rather than assumed to. Do not hand-edit: editing a byte without re-sealing makes the fixture fail its own seal, which is the behaviour under test."
+  },
+  "envelope": {
+    "envelope_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "widget_id": "onex.widget.consumer_flow_throughput",
+    "widget_version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0,
+      "prerelease": null,
+      "build": null
+    },
+    "component": {
+      "component_id": "onex.component.consumer_flow_throughput",
+      "component_kind": "chart",
+      "title": "Gateway link health throughput",
+      "contract_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "data_bindings": [
+        {
+          "binding_id": "throughput",
+          "projection_topic": "onex.snapshot.projection.consumer-flow.v1",
+          "ordering_authority_field": "window_end",
+          "ordering_direction": "ascending",
+          "required_fields": [
+            "window_end",
+            "messages_in",
+            "messages_out"
+          ],
+          "cursor_field": null
+        }
+      ],
+      "actions": [],
+      "evidence_requirements": [],
+      "permission": null,
+      "supported_empty_state_reasons": [
+        "no-data",
+        "missing-field",
+        "upstream-blocked",
+        "schema-invalid"
+      ]
+    },
+    "config": {
+      "config_kind": "chart",
+      "widget_type": "chart",
+      "chart_type": "line",
+      "series": [
+        {
+          "name": "Messages in",
+          "data_key": "messages_in",
+          "color": null,
+          "series_type": "line"
+        },
+        {
+          "name": "Messages out",
+          "data_key": "messages_out",
+          "color": null,
+          "series_type": "line"
+        }
+      ],
+      "x_axis": {
+        "label": "Window end",
+        "min_value": null,
+        "max_value": null,
+        "show_grid": false
+      },
+      "y_axis": {
+        "label": "Messages",
+        "min_value": null,
+        "max_value": null,
+        "show_grid": true
+      },
+      "show_legend": true,
+      "stacked": false
+    },
+    "provenance": {
+      "pack_namespace": "onex.packs.platform",
+      "pack_name": "platform-observability",
+      "pack_version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "prerelease": null,
+        "build": null
+      },
+      "source_revision": "3bbd8efa1664e2625f9a9862b0bf3b56675d7181"
+    },
+    "content_digest": "sha256:cf877e01acc5ed29c096ee53622d623ff23e70a0f85b3a39673e58f53b94cbe1"
+  }
+}
