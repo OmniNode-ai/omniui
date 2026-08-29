@@ -10,6 +10,8 @@
  * removed it disappears.
  */
 
+import type { ReactNode } from 'react';
+
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { ThemeProvider, useTheme } from './ThemeProvider.js';
@@ -18,7 +20,7 @@ import { FIXTURE_THEME_PAPER, FIXTURE_THEME_SLATE } from './theme-fixtures.js';
 
 const COLOR_VALUE = /^(#|rgb|hsl|oklch)/i;
 
-function TokenRow({ token }: { readonly token: string }): React.ReactNode {
+function TokenRow({ token }: { readonly token: string }): ReactNode {
   const theme = useTheme();
   const value = theme.tokens[token]!;
   const isColor = COLOR_VALUE.test(value);
@@ -48,7 +50,7 @@ function TokenRow({ token }: { readonly token: string }): React.ReactNode {
   );
 }
 
-function ThemeReference(): React.ReactNode {
+function ThemeReference(): ReactNode {
   const theme = useTheme();
   return (
     <div

@@ -65,7 +65,18 @@ export function themeToCssProperties(theme: Theme): Record<string, string> {
   for (const [token, value] of Object.entries(theme.tokens).sort(([a], [b]) =>
     a < b ? -1 : a > b ? 1 : 0,
   )) {
-    out[tokenVarName(token)] = value;
+    const varName = tokenVarName(token);
+    // `_` and `-` both normalise to `-`, so `theme_id` and `theme-id` are one
+    // property, and either would silently overwrite the identity declarations
+    // above. A surface whose reported digest was clobbered by a token would
+    // pass G-U1 while rendering something else, so this fails closed.
+    if (varName in out) {
+      throw new TypeError(
+        `theme '${theme.identity.themeId}': token '${token}' collides with an ` +
+          `already-declared custom property '${varName}'`,
+      );
+    }
+    out[varName] = value;
   }
   return out;
 }

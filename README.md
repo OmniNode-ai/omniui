@@ -45,7 +45,7 @@ Three properties are deliberate:
 
 ## Layout
 
-```
+```text
 src/theme/      the theme binding: token -> CSS custom property, provider, hook
 src/renderer/   (Phase 1B+) generic component types parameterized by widget contracts
 .storybook/     Storybook config; the Style Reference Guide is a story, not a doc

@@ -2,20 +2,27 @@
 // SPDX-License-Identifier: MIT
 
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 
 import { ThemeProvider, useTheme } from './ThemeProvider.js';
-import { THEME_DIGEST_VAR, THEME_ID_VAR, tokenRef, tokenVarName } from './css-variables.js';
+import {
+  THEME_DIGEST_VAR,
+  THEME_ID_VAR,
+  themeToCssProperties,
+  tokenRef,
+  tokenVarName,
+} from './css-variables.js';
 import { FIXTURE_THEME_PAPER, FIXTURE_THEME_SLATE } from './theme-fixtures.js';
 import { assertReportableTheme, type Theme } from './theme-token-set.js';
 
-function AccentSwatch(): React.ReactNode {
+function AccentSwatch(): ReactNode {
   return (
     <div data-testid="swatch" style={{ backgroundColor: tokenRef('color_accent_primary') }} />
   );
 }
 
-function ThemeReporter(): React.ReactNode {
+function ThemeReporter(): ReactNode {
   const theme = useTheme();
   return <span data-testid="reported">{`${theme.identity.themeId}@${theme.identity.instanceRevision}`}</span>;
 }
@@ -84,6 +91,26 @@ describe('ThemeProvider', () => {
     expect(() => {
       render(<ThemeReporter />);
     }).toThrow(/outside a <ThemeProvider>/);
+  });
+});
+
+describe('themeToCssProperties', () => {
+  it('refuses a token whose custom property collides with the identity vars', () => {
+    // `theme_id` normalises to `--onex-theme-id` and would otherwise overwrite
+    // the reported identity, leaving the CSS disagreeing with data-onex-theme.
+    const colliding: Theme = {
+      ...FIXTURE_THEME_SLATE,
+      tokens: { ...FIXTURE_THEME_SLATE.tokens, theme_id: 'not-the-real-id' },
+    };
+    expect(() => themeToCssProperties(colliding)).toThrow(/collides with/);
+  });
+
+  it('refuses two tokens that normalise to the same custom property', () => {
+    const colliding: Theme = {
+      ...FIXTURE_THEME_SLATE,
+      tokens: { ...FIXTURE_THEME_SLATE.tokens, 'color-accent-primary': '#000000' },
+    };
+    expect(() => themeToCssProperties(colliding)).toThrow(/collides with/);
   });
 });
 
