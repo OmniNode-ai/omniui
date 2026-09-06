@@ -37,7 +37,11 @@ Step 6 runs last on purpose: a rollback followed by a reinstall of the new versi
 **Both are operator actions.**
 
 1. **The `@omninode` npm scope does not exist.** `GET https://registry.npmjs.org/-/org/omninode/package` returns `{"error":"Scope not found"}`, and both `@omninode/omniui` and `@omninode/tokens` return `404`. Creating an npm organization requires an npm account; an agent has none and cannot create one.
-2. **No publish credential is provisioned.** `omniui` has **zero** repository secrets, and the org secrets visible to it (`BRANCH_PROTECTION_PAT`, `CROSS_REPO_PAT`, `ONEXBOT_APP_ID`, `ONEXBOT_APP_PRIVATE_KEY`, `ONEXBOT_OCC_APP_ID`, `ONEXBOT_OCC_PRIVATE_KEY`, `POLICY_GATE_TOKEN`, `PYPI_TOKEN`) contain no npm token. `publish.yml` reads `secrets.NPM_PUBLISH_TOKEN`, which is unset.
+2. **No publish credential is present.** `publish.yml` reads an npm publish token
+   from a repository secret that is not set, so the workflow cannot authenticate to
+   the registry. Which other secrets this repository can or cannot see is not
+   recorded here: enumerating an organisation's credential surface in a public
+   document maps it for everybody, and the point above stands without it.
 
    npm **trusted publishing** would remove the token entirely — the OIDC path this workflow already uses — but configuring a trusted publisher is done on npmjs.com against the package, which again needs the account and the scope.
 
