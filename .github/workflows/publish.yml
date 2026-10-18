@@ -20,10 +20,9 @@
 #
 # BLOCKED, and deliberately so: `package.json` still ships `"private": true`,
 # and `npm publish` refuses a private package. That refusal is the gate, not a
-# bug. It lifts when the two operator prerequisites in
-# `docs/PLANE-2-DISTRIBUTION.md` are met -- the `@omninode` npm scope does not
-# exist and no publish credential is provisioned, and an agent can create
-# neither.
+# bug. Publishing requires the `@omninode` npm scope and a publish credential;
+# an agent can provision neither. Documentation lives in the public knowledge
+# base: https://github.com/OmniNode-ai/knowledge-base.
 
 name: Publish
 
