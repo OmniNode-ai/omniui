@@ -1,0 +1,32 @@
+# canonical-file-shape baseline. Shrink-only.
+# Every line is a code file outside a canonical location that existed
+# when the ratchet was installed. Delete a line when its file is removed,
+# moved into a canonical location or rewritten as contract + node +
+# handler. A new line is refused.
+eslint-rules/generated-artifact-parity.js
+eslint-rules/index.js
+eslint-rules/manifest.d.ts
+eslint-rules/manifest.js
+eslint-rules/no-color-inline.js
+eslint-rules/no-spacing-inline.js
+eslint-rules/no-unsourced-css.js
+eslint-rules/parity.test.js
+eslint-rules/rules.test.js
+eslint-rules/shared.js
+eslint-rules/svg-and-chart-inputs.js
+scripts/capture_widget_envelopes.py
+scripts/check-generated-artifacts.ts
+scripts/compile-tokens.ts
+scripts/generate-onex-models.ts
+scripts/pin-bump-npm.mjs
+scripts/pin-bump-npm.test.js
+scripts/verify-reachability.sh
+src/binding/canonical-json.ts
+src/binding/envelope.ts
+src/binding/index.ts
+src/binding/json-source.ts
+src/binding/resolve.ts
+src/binding/sha256.ts
+src/fixtures/index.ts
+src/fixtures/widgets.ts
+src/tokens/compile.ts
