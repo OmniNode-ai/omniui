@@ -24,14 +24,24 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { compileCatalog, type ThemeCatalogCapture } from '../src/tokens/compile.js';
+import { compileCatalog, type CompiledArtifact, type ThemeCatalogCapture } from '../src/tokens/compile.js';
+import { compileTokenArtifact, findDrift } from '../src/models/tokens/artifact.js';
+import { parseStatusPalette } from '../src/models/tokens/status-palette.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = join(REPO_ROOT, 'themes', 'theme-catalog.capture.json');
+const PALETTE_SOURCE = join(REPO_ROOT, 'themes', 'status-palette.json');
 
 function loadCapture(): ThemeCatalogCapture {
   const raw = JSON.parse(readFileSync(SOURCE, 'utf8')) as ThemeCatalogCapture;
   return { catalog: raw.catalog, instances: raw.instances };
+}
+
+// Theme-instance compile plus the framework-free artifact (OMN-21848).
+function compileAll(): readonly CompiledArtifact[] {
+  const capture = loadCapture();
+  const palette = parseStatusPalette(JSON.parse(readFileSync(PALETTE_SOURCE, 'utf8')));
+  return [...compileCatalog(capture).artifacts, ...compileTokenArtifact(capture, palette)];
 }
 
 function digest(contents: string): string {
@@ -39,7 +49,7 @@ function digest(contents: string): string {
 }
 
 function write(): void {
-  const { artifacts } = compileCatalog(loadCapture());
+  const artifacts = compileAll();
   for (const artifact of artifacts) {
     const target = join(REPO_ROOT, artifact.path);
     mkdirSync(dirname(target), { recursive: true });
@@ -50,24 +60,14 @@ function write(): void {
 }
 
 function check(): number {
-  const { artifacts } = compileCatalog(loadCapture());
-  const drifted: string[] = [];
-  for (const artifact of artifacts) {
-    const target = join(REPO_ROOT, artifact.path);
-    let onDisk: string;
+  const artifacts = compileAll();
+  const drifted = findDrift(artifacts, (path) => {
     try {
-      onDisk = readFileSync(target, 'utf8');
+      return readFileSync(join(REPO_ROOT, path), 'utf8');
     } catch {
-      drifted.push(`${artifact.path}: missing — never compiled, or deleted`);
-      continue;
+      return undefined;
     }
-    if (onDisk !== artifact.contents) {
-      drifted.push(
-        `${artifact.path}: checked in sha256:${digest(onDisk)}, ` +
-          `fresh compile sha256:${digest(artifact.contents)}`,
-      );
-    }
-  }
+  });
   if (drifted.length > 0) {
     process.stderr.write(
       'Compiled token artifacts disagree with a fresh compile of their source.\n' +

@@ -60,6 +60,12 @@ jobs:
       - name: Check compiled token artifacts
         run: npm run check:tokens
 
+      # OMN-21848 -- the framework-free token artifact (css, json, manifest) is
+      # part of the same byte comparison. This step names it so a failure here
+      # reads as the artifact's drift, and its tests prove the check fires.
+      - name: Check framework-free token artifact
+        run: npm run check:token-artifact
+
       # `generated-artifact-parity`'s complete half. ESLint 9 has no CSS
       # language, so the compiled .css artifacts are invisible to the inline
       # rule; this walks the tree by bytes, so extension is irrelevant.

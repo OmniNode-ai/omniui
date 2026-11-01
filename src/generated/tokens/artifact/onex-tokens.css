@@ -1,0 +1,135 @@
+/* GENERATED FILE — DO NOT EDIT.
+ *
+ * Framework-free design tokens, compiled by `npm run compile:tokens` (OMN-21848).
+ * Hand-editing a value here makes this file disagree with its source, which
+ * `npm run check:tokens` turns into a failing build.
+ *
+ * Colour scheme:
+ *   - light is the default, on :root.
+ *   - dark applies under :root[data-onex-color-scheme='dark'] (explicit choice).
+ *   - dark also applies under @media (prefers-color-scheme: dark), unless the
+ *     root carries data-onex-color-scheme='light'.
+ * Every status colour has an icon token beside it; colour is never the only signal.
+ */
+
+:root {
+  color-scheme: light;
+  --onex-border-radius-lg: 1rem;
+  --onex-border-radius-md: 0.5rem;
+  --onex-border-radius-sm: 0.25rem;
+  --onex-color-accent-primary: #4f46e5;
+  --onex-color-accent-secondary: #6366f1;
+  --onex-color-background-elevated: #ffffff;
+  --onex-color-background-primary: #ffffff;
+  --onex-color-background-secondary: #f8fafc;
+  --onex-color-border-default: #e2e8f0;
+  --onex-color-border-strong: #cbd5e1;
+  --onex-color-status-error: #b91c1c;
+  --onex-color-status-info: #0369a1;
+  --onex-color-status-success: #15803d;
+  --onex-color-status-warning: #b45309;
+  --onex-color-text-disabled: #94a3b8;
+  --onex-color-text-primary: #0f172a;
+  --onex-color-text-secondary: #475569;
+  --onex-font-family-base: 'Inter', system-ui, sans-serif;
+  --onex-font-size-lg: 1.125rem;
+  --onex-font-size-md: 1rem;
+  --onex-font-size-sm: 0.875rem;
+  --onex-font-weight-bold: 700;
+  --onex-font-weight-normal: 400;
+  --onex-spacing-lg: 1.5rem;
+  --onex-spacing-md: 1rem;
+  --onex-spacing-sm: 0.5rem;
+  --onex-spacing-xl: 2rem;
+  --onex-spacing-xs: 0.25rem;
+  --onex-status-moving-color: #15803d;
+  --onex-status-waiting-color: #92400e;
+  --onex-status-blocked-color: #b91c1c;
+  --onex-status-stopped-color: #475569;
+  --onex-status-unread-color: #1d4ed8;
+  --onex-status-stale-color: #6b7280;
+  --onex-status-moving-icon: 'status.moving';
+  --onex-status-waiting-icon: 'status.waiting';
+  --onex-status-blocked-icon: 'status.blocked';
+  --onex-status-stopped-icon: 'status.stopped';
+  --onex-status-unread-icon: 'status.unread';
+  --onex-status-stale-icon: 'status.stale';
+}
+
+:root[data-onex-color-scheme='dark'] {
+  color-scheme: dark;
+  --onex-border-radius-lg: 1rem;
+  --onex-border-radius-md: 0.5rem;
+  --onex-border-radius-sm: 0.25rem;
+  --onex-color-accent-primary: #6366f1;
+  --onex-color-accent-secondary: #818cf8;
+  --onex-color-background-elevated: #334155;
+  --onex-color-background-primary: #0f172a;
+  --onex-color-background-secondary: #1e293b;
+  --onex-color-border-default: #334155;
+  --onex-color-border-strong: #475569;
+  --onex-color-status-error: #ef4444;
+  --onex-color-status-info: #38bdf8;
+  --onex-color-status-success: #22c55e;
+  --onex-color-status-warning: #f59e0b;
+  --onex-color-text-disabled: #475569;
+  --onex-color-text-primary: #f8fafc;
+  --onex-color-text-secondary: #94a3b8;
+  --onex-font-family-base: 'Inter', system-ui, sans-serif;
+  --onex-font-size-lg: 1.125rem;
+  --onex-font-size-md: 1rem;
+  --onex-font-size-sm: 0.875rem;
+  --onex-font-weight-bold: 700;
+  --onex-font-weight-normal: 400;
+  --onex-spacing-lg: 1.5rem;
+  --onex-spacing-md: 1rem;
+  --onex-spacing-sm: 0.5rem;
+  --onex-spacing-xl: 2rem;
+  --onex-spacing-xs: 0.25rem;
+  --onex-status-moving-color: #4ade80;
+  --onex-status-waiting-color: #fbbf24;
+  --onex-status-blocked-color: #f87171;
+  --onex-status-stopped-color: #94a3b8;
+  --onex-status-unread-color: #60a5fa;
+  --onex-status-stale-color: #9ca3af;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-onex-color-scheme='light']) {
+    color-scheme: dark;
+    --onex-border-radius-lg: 1rem;
+    --onex-border-radius-md: 0.5rem;
+    --onex-border-radius-sm: 0.25rem;
+    --onex-color-accent-primary: #6366f1;
+    --onex-color-accent-secondary: #818cf8;
+    --onex-color-background-elevated: #334155;
+    --onex-color-background-primary: #0f172a;
+    --onex-color-background-secondary: #1e293b;
+    --onex-color-border-default: #334155;
+    --onex-color-border-strong: #475569;
+    --onex-color-status-error: #ef4444;
+    --onex-color-status-info: #38bdf8;
+    --onex-color-status-success: #22c55e;
+    --onex-color-status-warning: #f59e0b;
+    --onex-color-text-disabled: #475569;
+    --onex-color-text-primary: #f8fafc;
+    --onex-color-text-secondary: #94a3b8;
+    --onex-font-family-base: 'Inter', system-ui, sans-serif;
+    --onex-font-size-lg: 1.125rem;
+    --onex-font-size-md: 1rem;
+    --onex-font-size-sm: 0.875rem;
+    --onex-font-weight-bold: 700;
+    --onex-font-weight-normal: 400;
+    --onex-spacing-lg: 1.5rem;
+    --onex-spacing-md: 1rem;
+    --onex-spacing-sm: 0.5rem;
+    --onex-spacing-xl: 2rem;
+    --onex-spacing-xs: 0.25rem;
+    --onex-status-moving-color: #4ade80;
+    --onex-status-waiting-color: #fbbf24;
+    --onex-status-blocked-color: #f87171;
+    --onex-status-stopped-color: #94a3b8;
+    --onex-status-unread-color: #60a5fa;
+    --onex-status-stale-color: #9ca3af;
+  }
+}

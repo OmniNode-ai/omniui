@@ -1,0 +1,14 @@
+{
+  "_generated": "GENERATED FILE — DO NOT EDIT. Compiled by `npm run compile:tokens` (OMN-21848).",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "src/generated/tokens/artifact/onex-tokens.css",
+      "sha256": "cd672e268de1ccc67ffcec79db980d25c1893d2dece7891d8eb9fa55d75b8aa6"
+    },
+    {
+      "path": "src/generated/tokens/artifact/onex-tokens.json",
+      "sha256": "1cd8483caf2847139f29288eedd0f3112bf75f7129319816fbae5550464e6cce"
+    }
+  ]
+}
