@@ -31,6 +31,14 @@
       "parity_mechanism": "byte comparison against a fresh in-process compile"
     },
     {
+      "pattern": "^src/generated/tokens/artifact/(onex-tokens\\.css|onex-tokens\\.json|manifest\\.json)$",
+      "source": "themes/theme-catalog.capture.json",
+      "regenerate": "npm run compile:tokens",
+      "parity_checker": "npm run check:tokens",
+      "parity_mechanism": "byte comparison against a fresh in-process compile (scripts/compile-tokens.ts check)",
+      "note": "Framework-free token artifact (OMN-21848): CSS custom properties with light and dark values, typed JSON, and a manifest of sha256 digests. Built from the captured catalog plus themes/status-palette.json."
+    },
+    {
       "pattern": "^src/generated/onex-models\\.ts$",
       "source": "schema/onex-models.json",
       "regenerate": "npm run generate:onex-models",

@@ -1,0 +1,14 @@
+{
+  "_doc": "Status palette for framework-free renderers. Typed data, loaded by src/tokens/models/status-palette.ts. Declared in this repo for now; moving it into a core theme instance is step S2 of the view-centric interfaces plan, not part of this source. Every colour is checked against the theme surface it sits on (WCAG 4.5:1) by src/tokens/artifact.test.ts, and every status names an icon token so colour is never the only signal.",
+  "palette_version": "1.0.0",
+  "themes": { "light": "onex.theme.light", "dark": "onex.theme.dark" },
+  "surface_token": "color_background_primary",
+  "statuses": {
+    "moving": { "light": "#15803d", "dark": "#4ade80", "icon": "status.moving", "icon_id": "arrow-right-circle" },
+    "waiting": { "light": "#92400e", "dark": "#fbbf24", "icon": "status.waiting", "icon_id": "clock" },
+    "blocked": { "light": "#b91c1c", "dark": "#f87171", "icon": "status.blocked", "icon_id": "x-octagon" },
+    "stopped": { "light": "#475569", "dark": "#94a3b8", "icon": "status.stopped", "icon_id": "pause-circle" },
+    "unread": { "light": "#1d4ed8", "dark": "#60a5fa", "icon": "status.unread", "icon_id": "dot-circle" },
+    "stale": { "light": "#6b7280", "dark": "#9ca3af", "icon": "status.stale", "icon_id": "hourglass" }
+  }
+}

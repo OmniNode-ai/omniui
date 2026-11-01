@@ -41,6 +41,7 @@
     "generate:onex-models": "tsx scripts/generate-onex-models.ts",
     "compile:tokens": "tsx scripts/compile-tokens.ts write",
     "check:tokens": "tsx scripts/compile-tokens.ts check",
+    "check:token-artifact": "vitest run src/tokens/artifact.test.ts -t drift",
     "check:generated": "tsx scripts/check-generated-artifacts.ts",
     "verify:reachability": "bash scripts/verify-reachability.sh"
   },

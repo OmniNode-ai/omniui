@@ -1,0 +1,120 @@
+{
+  "_generated": "GENERATED FILE — DO NOT EDIT. Compiled by `npm run compile:tokens` (OMN-21848).",
+  "schema": "onex.design-tokens/1",
+  "source": {
+    "catalog_version": "1.0.0",
+    "palette_version": "1.0.0",
+    "themes": {
+      "light": {
+        "theme_id": "onex.theme.light",
+        "revision": "1.0.0",
+        "digest": "sha256:aa8ec6e7434ace76186ef634be874fc1e70e48e2fd96cd0c2cb729ef9adf5c3a"
+      },
+      "dark": {
+        "theme_id": "onex.theme.dark",
+        "revision": "1.0.0",
+        "digest": "sha256:f73b1716faa9d73f53c0331ded08ff5c72d2d5217a05c5fdb91c7ad3ab26c26f"
+      }
+    }
+  },
+  "tokens": {
+    "light": {
+      "border_radius_lg": "1rem",
+      "border_radius_md": "0.5rem",
+      "border_radius_sm": "0.25rem",
+      "color_accent_primary": "#4f46e5",
+      "color_accent_secondary": "#6366f1",
+      "color_background_elevated": "#ffffff",
+      "color_background_primary": "#ffffff",
+      "color_background_secondary": "#f8fafc",
+      "color_border_default": "#e2e8f0",
+      "color_border_strong": "#cbd5e1",
+      "color_status_error": "#b91c1c",
+      "color_status_info": "#0369a1",
+      "color_status_success": "#15803d",
+      "color_status_warning": "#b45309",
+      "color_text_disabled": "#94a3b8",
+      "color_text_primary": "#0f172a",
+      "color_text_secondary": "#475569",
+      "font_family_base": "'Inter', system-ui, sans-serif",
+      "font_size_lg": "1.125rem",
+      "font_size_md": "1rem",
+      "font_size_sm": "0.875rem",
+      "font_weight_bold": "700",
+      "font_weight_normal": "400",
+      "spacing_lg": "1.5rem",
+      "spacing_md": "1rem",
+      "spacing_sm": "0.5rem",
+      "spacing_xl": "2rem",
+      "spacing_xs": "0.25rem"
+    },
+    "dark": {
+      "border_radius_lg": "1rem",
+      "border_radius_md": "0.5rem",
+      "border_radius_sm": "0.25rem",
+      "color_accent_primary": "#6366f1",
+      "color_accent_secondary": "#818cf8",
+      "color_background_elevated": "#334155",
+      "color_background_primary": "#0f172a",
+      "color_background_secondary": "#1e293b",
+      "color_border_default": "#334155",
+      "color_border_strong": "#475569",
+      "color_status_error": "#ef4444",
+      "color_status_info": "#38bdf8",
+      "color_status_success": "#22c55e",
+      "color_status_warning": "#f59e0b",
+      "color_text_disabled": "#475569",
+      "color_text_primary": "#f8fafc",
+      "color_text_secondary": "#94a3b8",
+      "font_family_base": "'Inter', system-ui, sans-serif",
+      "font_size_lg": "1.125rem",
+      "font_size_md": "1rem",
+      "font_size_sm": "0.875rem",
+      "font_weight_bold": "700",
+      "font_weight_normal": "400",
+      "spacing_lg": "1.5rem",
+      "spacing_md": "1rem",
+      "spacing_sm": "0.5rem",
+      "spacing_xl": "2rem",
+      "spacing_xs": "0.25rem"
+    }
+  },
+  "status": {
+    "moving": {
+      "light": "#15803d",
+      "dark": "#4ade80",
+      "icon": "status.moving",
+      "icon_id": "arrow-right-circle"
+    },
+    "waiting": {
+      "light": "#92400e",
+      "dark": "#fbbf24",
+      "icon": "status.waiting",
+      "icon_id": "clock"
+    },
+    "blocked": {
+      "light": "#b91c1c",
+      "dark": "#f87171",
+      "icon": "status.blocked",
+      "icon_id": "x-octagon"
+    },
+    "stopped": {
+      "light": "#475569",
+      "dark": "#94a3b8",
+      "icon": "status.stopped",
+      "icon_id": "pause-circle"
+    },
+    "unread": {
+      "light": "#1d4ed8",
+      "dark": "#60a5fa",
+      "icon": "status.unread",
+      "icon_id": "dot-circle"
+    },
+    "stale": {
+      "light": "#6b7280",
+      "dark": "#9ca3af",
+      "icon": "status.stale",
+      "icon_id": "hourglass"
+    }
+  }
+}
