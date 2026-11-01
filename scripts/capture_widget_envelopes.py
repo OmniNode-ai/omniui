@@ -17,7 +17,7 @@ rests on. Neither half alone is worth much.
 
 Usage (from the omniui repo root, with an ``omnibase_core`` checkout available)::
 
-    /Users/jonah/Code/omni_home/omnibase_core/.venv/bin/python \\
+    <omnibase_core checkout>/.venv/bin/python \\
         scripts/capture_widget_envelopes.py
 
 or, portably::

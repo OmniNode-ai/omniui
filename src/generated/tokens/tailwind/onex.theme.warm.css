@@ -13,7 +13,7 @@
  * revision 1.0.0 · schema 1.0.0
  * sha256:72877506f4c236713670175a41c91944b9ad09eab277bffa94d6847a47c33d28
  *
- * omniweb only (D7). omnidash does not consume Tailwind.
+ * Public web application only (D7). The dashboard does not consume Tailwind.
  */
 @theme {
   --radius-lg: 1rem;

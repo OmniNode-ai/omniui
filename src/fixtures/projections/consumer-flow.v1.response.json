@@ -6,7 +6,7 @@
     "envelope_source_note": "The response envelope is assembled as a dict literal in the serving path rather than by a declared response model, so its keys are cited to that file rather than to a contract. That asymmetry is real and is recorded rather than papered over: the ROW shape is contract-declared, the ENVELOPE shape is code-declared.",
     "rows_source": "consumer-flow.v1.exposure.json — the contract's projection_api.columns, in declared order.",
     "rows_note": "Row VALUES are authored to cover every declared flow_state and both counter-nullability cases. They are not scraped: a live capture of a quiet lane yields five identical IDLE rows and proves nothing about STALLED, STARVED, or UNKNOWN. The canonical case is row 2 — OMN-16777 AC2: 15,750 in, 0 out.",
-    "live_cross_check": "A read-only GET against the .201 dev lane returned this envelope shape with backing='bus'. Its rows were all IDLE, which is why they are not the fixture."
+    "live_cross_check": "A read-only GET against the dev lane returned this envelope shape with backing='bus'. Its rows were all IDLE, which is why they are not the fixture."
   },
   "topic": "onex.snapshot.projection.consumer-flow.v1",
   "projection_version": "1.0.0",

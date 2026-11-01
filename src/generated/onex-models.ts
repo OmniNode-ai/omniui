@@ -4,8 +4,8 @@
 // GENERATED FILE — DO NOT EDIT.
 //
 // Source: schema/onex-models.json, itself emitted by omnibase_core's
-// scripts/emit_ts_types.py. See schema/PROVENANCE.md for the source commit and
-// digest, and run `npm run generate:onex-models` to regenerate.
+// scripts/emit_ts_types.py. See schema/onex-models.provenance.json for the
+// source commit and digest, and run `npm run generate:onex-models` to regenerate.
 
 /**
  * This interface was referenced by `HttpsOmninodeAiSchemasOmnidashV2Json`'s JSON-Schema

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 OmniNode.ai Inc.
+# SPDX-License-Identifier: MIT
+#
+# KB doc gate -- repo config for omniui. Prose documentation lives in the public
+# knowledge base; this repository keeps the README and the files the default
+# allowed set names.
+#
+# Canonical validator and reusable workflow: scripts/kb_doc_gate.py and
+# .github/workflows/kb-doc-gate-reusable.yml in omniclaude. `allowed:` here is
+# additive to the validator's default set, and `mode:` here wins over the
+# workflow's `with: mode:`.
+
+# strict -- fails if ANY tracked markdown outside the allowed set exists on the
+# branch, not just markdown a given pull request touched.
+mode: strict

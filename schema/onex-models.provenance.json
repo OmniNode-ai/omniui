@@ -1,0 +1,8 @@
+{
+  "_generated": "GENERATED FILE — DO NOT EDIT. Written by npm run generate:onex-models.",
+  "source_repo": "OmniNode-ai/omnibase_core",
+  "source_commit": "872beef0397e81064e1212ad5d9d73f173ea3f84",
+  "emitter": "scripts/emit_ts_types.py",
+  "schema_sha256": "155d4ed8ba3cd71e75da79b7c39132dd6bcefdfd2fe947276ce4d22adde13c51",
+  "defs_count": 58
+}

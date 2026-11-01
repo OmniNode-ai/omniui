@@ -185,7 +185,7 @@ jobs:
           BASE_BRANCH="$(node -p "require('../omniui/docs/downstream-consumers.json').repos.find((r) => r.name === process.env.REPO).base_branch")"
           # Every repo in the registry is squash-only, and the base branch comes
           # from the manifest rather than being assumed. Verify the consumer's
-          # landing verb at activation (omni_home/CLAUDE.md Merge Queue Policy)
+          # landing verb at activation (the organisation merge queue policy)
           # rather than assuming --auto is accepted: it is repo-level config and
           # it has drifted before.
           {

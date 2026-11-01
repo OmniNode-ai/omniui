@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 OmniNode.ai Inc.
+# SPDX-License-Identifier: MIT
+#
+# KB Doc Gate -- thin caller. Refuses tracked markdown outside the README and the
+# default allowed set, so prose documentation lives in the public knowledge base.
+# The validator lives in omniclaude. The pin is an omniclaude commit on `dev`
+# (`main` is release-synced and does not carry the gate) and is the same commit as
+# the kb-doc-gate hook's rev in .pre-commit-config.yaml, so the local and CI
+# verdicts cannot diverge.
+
+name: KB Doc Gate
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  kb-doc-gate:
+    uses: OmniNode-ai/omniclaude/.github/workflows/kb-doc-gate-reusable.yml@fcb1a9047e65c97f2577cafbc392f202afa57d36
+    with:
+      mode: strict
