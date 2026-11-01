@@ -1,0 +1,66 @@
+---
+# omniui pre-commit configuration (OMN-21862).
+#
+# Every hook is check-only: none rewrites a file. The fix for a refusal is made by the
+# author, then the commit is retried. The local hooks mirror the commands the required
+# `build` job in .github/workflows/ci.yml runs, in the same order, so the local and CI
+# verdicts agree. Install with:
+#   pre-commit install -t pre-commit -t commit-msg
+#   pre-commit run --all-files
+#
+# Needs `npm ci` first: the local hooks run the repository's own npm scripts.
+
+repos:
+  - repo: local
+    hooks:
+      - id: eslint
+        name: ESLint (npm run lint)
+        entry: npm run lint --silent
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: typecheck
+        name: TypeScript typecheck (npm run typecheck)
+        entry: npm run typecheck --silent
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: check-tokens
+        name: Compiled token artifacts match their source (npm run check:tokens)
+        entry: npm run check:tokens --silent
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: check-generated
+        name: Generated-artifact declarations (npm run check:generated)
+        entry: npm run check:generated --silent
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
+  # Shared check-only hooks from omnibase_core: a hook that rewrites files is refused, and
+  # this public repository adds no self-hosted CI job (CI twin of the placement hook is the
+  # runs-on label in .github/workflows).
+  - repo: https://github.com/OmniNode-ai/omnibase_core
+    rev: 3f33be0d5364ab56ff4e5cb858a830bd9c475dfb # dev-20261029044430-3f33be0d5364
+    hooks:
+      - id: check-hook-writes
+        require_serial: true
+      - id: check-public-runner-placement
+        args: [--repo, omniui, --visibility, public]
+        require_serial: true
+
+  # Public-repository hygiene. Local twin of the required CI context
+  # public-repo-hygiene / public-repo-hygiene and of deployment-config. The first reads the
+  # private vocabulary named by OMNI_HYGIENE_VOCAB_PATH and fails closed without it.
+  - repo: https://github.com/OmniNode-ai/omniclaude
+    rev: fcb1a9047e65c97f2577cafbc392f202afa57d36
+    hooks:
+      - id: public-repo-hygiene
+        require_serial: true
+      - id: deployment-config
+        require_serial: true
