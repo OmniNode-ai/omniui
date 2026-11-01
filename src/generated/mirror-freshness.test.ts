@@ -12,7 +12,7 @@
  * needs an `omnibase_core` checkout and a Python toolchain. What CI *can*
  * enforce, and what this file enforces, is the half that actually rots:
  *
- * 1. the checked-in schema is the one `schema/PROVENANCE.md` claims (digest);
+ * 1. the checked-in schema is the one `schema/onex-models.provenance.json` records (digest);
  * 2. the checked-in TypeScript is a faithful mirror of that schema (symbols);
  * 3. the gate-named symbols are present on both sides.
  *
@@ -32,7 +32,7 @@ import { describe, expect, it } from 'vitest';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, '..', '..');
 const SCHEMA_PATH = join(REPO_ROOT, 'schema', 'onex-models.json');
-const PROVENANCE_PATH = join(REPO_ROOT, 'schema', 'PROVENANCE.md');
+const PROVENANCE_PATH = join(REPO_ROOT, 'schema', 'onex-models.provenance.json');
 const MIRROR_PATH = join(HERE, 'onex-models.ts');
 
 /** Symbols G1A.5 names by hand, plus the ones Phase 1B will bind. */
@@ -53,7 +53,11 @@ const GATE_SYMBOLS = [
 const schemaRaw = readFileSync(SCHEMA_PATH, 'utf8');
 const schema = JSON.parse(schemaRaw) as { $defs: Record<string, unknown> };
 const mirror = readFileSync(MIRROR_PATH, 'utf8');
-const provenance = readFileSync(PROVENANCE_PATH, 'utf8');
+const provenance = JSON.parse(readFileSync(PROVENANCE_PATH, 'utf8')) as {
+  source_commit: string;
+  schema_sha256: string;
+  defs_count: number;
+};
 
 describe('G1A.5 — TS mirror freshness', () => {
   it('carries the theme schema and the C2 envelope in the JSON schema', () => {
@@ -68,19 +72,17 @@ describe('G1A.5 — TS mirror freshness', () => {
     expect(missing).toStrictEqual([]);
   });
 
-  it('checks in the exact schema PROVENANCE.md records', () => {
+  it('checks in the exact schema the provenance file records', () => {
     const digest = createHash('sha256').update(schemaRaw, 'utf8').digest('hex');
-    expect(provenance).toContain(digest);
+    expect(provenance.schema_sha256).toBe(digest);
   });
 
   it('records the source commit the schema was emitted from', () => {
-    expect(provenance).toMatch(/\| Commit \| `[0-9a-f]{40}`/);
+    expect(provenance.source_commit).toMatch(/^[0-9a-f]{40}$/);
   });
 
-  it('agrees with PROVENANCE.md on how many definitions the schema carries', () => {
-    const declared = /\| `\$defs` count \| (\d+) \|/.exec(provenance)?.[1];
-    expect(declared).toBeDefined();
-    expect(Object.keys(schema.$defs).length).toBe(Number(declared));
+  it('agrees with the provenance file on how many definitions the schema carries', () => {
+    expect(Object.keys(schema.$defs).length).toBe(provenance.defs_count);
   });
 
   it('never hand-edits the mirror', () => {

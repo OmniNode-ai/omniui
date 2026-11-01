@@ -6,7 +6,7 @@
     "source_block": "projection_api",
     "source_ticket": "OMN-16777",
     "why_this_and_not_a_live_read": "A fixture scraped from an endpoint captures whatever that endpoint happened to be serving. This is the contract's own statement of what it will serve, so a later divergence is falsifiable against something.",
-    "live_cross_check": "A read-only GET against the .201 dev lane's projection API returned backing='bus' and rows carrying exactly these fourteen columns. The cross-check agreed; it is not the source."
+    "live_cross_check": "A read-only GET against the dev lane's projection API returned backing='bus' and rows carrying exactly these fourteen columns. The cross-check agreed; it is not the source."
   },
   "expose": true,
   "topic": "onex.snapshot.projection.consumer-flow.v1",

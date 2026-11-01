@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MIT
 #
 # Canonical file shape ratchet (OMN-20304, TypeScript and shell rules OMN-21332).
-# Definition: knowledge_base_internal beta/plans/2026-10-23-canonical-shape-typescript-react-swift.md
-# (rules T1-T17 and S1). A TypeScript or React file outside the canonical
+# Definition: the canonical-shape plan for TypeScript, React and Swift in the private
+# planning corpus (rules T1-T17 and S1). A TypeScript or React file outside the canonical
 # locations, or a shell script anywhere, is refused unless it is listed in the
 # shrink-only .onex_ratchets/canonical_file_shape_baseline.txt. The baseline only
 # shrinks; a new entry is refused against the base revision.

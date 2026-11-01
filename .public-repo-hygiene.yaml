@@ -22,7 +22,10 @@ suppression_registry: ".public-repo-hygiene-suppressions.yaml"
 
 allowed_top_level:
   - ".github"
+  - ".kb-doc-gate.yaml"
   - ".gitignore"
+  - ".onex_ratchets"
+  - ".pre-commit-config.yaml"
   - ".public-repo-hygiene-suppressions.yaml"
   - ".public-repo-hygiene.yaml"
   - ".storybook"
