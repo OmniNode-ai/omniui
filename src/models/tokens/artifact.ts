@@ -17,7 +17,7 @@
 import { createHash } from 'node:crypto';
 
 import { tokenVarName } from '../../theme/css-variables.js';
-import { designTokens, semver, type CompiledArtifact, type ThemeCatalogCapture } from '../compile.js';
+import { designTokens, semver, type CompiledArtifact, type ThemeCatalogCapture } from '../../tokens/compile.js';
 import { STATUS_NAMES, type StatusPalette } from './status-palette.js';
 
 export const ARTIFACT_DIR = 'src/generated/tokens/artifact';

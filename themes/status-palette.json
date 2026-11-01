@@ -1,5 +1,5 @@
 {
-  "_doc": "Status palette for framework-free renderers. Typed data, loaded by src/tokens/models/status-palette.ts. Declared in this repo for now; moving it into a core theme instance is step S2 of the view-centric interfaces plan, not part of this source. Every colour is checked against the theme surface it sits on (WCAG 4.5:1) by src/tokens/artifact.test.ts, and every status names an icon token so colour is never the only signal.",
+  "_doc": "Status palette for framework-free renderers. Typed data, loaded by src/models/tokens/status-palette.ts. Declared in this repo for now; moving it into a core theme instance is step S2 of the view-centric interfaces plan, not part of this source. Every colour is checked against the theme surface it sits on (WCAG 4.5:1) by src/tokens/artifact.test.ts, and every status names an icon token so colour is never the only signal.",
   "palette_version": "1.0.0",
   "themes": { "light": "onex.theme.light", "dark": "onex.theme.dark" },
   "surface_token": "color_background_primary",

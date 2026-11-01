@@ -23,8 +23,8 @@ import {
   findDrift,
   type TokenArtifactJson,
   type TokenArtifactManifest,
-} from './models/artifact.js';
-import { STATUS_NAMES, parseStatusPalette } from './models/status-palette.js';
+} from '../models/tokens/artifact.js';
+import { STATUS_NAMES, parseStatusPalette } from '../models/tokens/status-palette.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -111,8 +111,8 @@ describe('artifact source', () => {
   it('source: no colour literal lives in the emitting source outside the data files', () => {
     const colour = /#[0-9a-fA-F]{3,8}\b|\b(?:rgb|hsl)a?\(/;
     for (const file of [
-      'src/tokens/models/artifact.ts',
-      'src/tokens/models/status-palette.ts',
+      'src/models/tokens/artifact.ts',
+      'src/models/tokens/status-palette.ts',
       'scripts/compile-tokens.ts',
     ]) {
       expect(readFileSync(join(REPO_ROOT, file), 'utf8'), file).not.toMatch(colour);
@@ -183,7 +183,7 @@ describe('artifact no-react', () => {
   });
 
   it('no-react: the emitting code path imports nothing from react', () => {
-    for (const entry of ['scripts/compile-tokens.ts', 'src/tokens/models/artifact.ts']) {
+    for (const entry of ['scripts/compile-tokens.ts', 'src/models/tokens/artifact.ts']) {
       const closure = importClosure(join(REPO_ROOT, entry));
       expect(closure.size).toBeGreaterThan(1);
       for (const [file, found] of closure) {

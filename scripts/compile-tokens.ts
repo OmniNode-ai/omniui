@@ -25,8 +25,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { compileCatalog, type CompiledArtifact, type ThemeCatalogCapture } from '../src/tokens/compile.js';
-import { compileTokenArtifact, findDrift } from '../src/tokens/models/artifact.js';
-import { parseStatusPalette } from '../src/tokens/models/status-palette.js';
+import { compileTokenArtifact, findDrift } from '../src/models/tokens/artifact.js';
+import { parseStatusPalette } from '../src/models/tokens/status-palette.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SOURCE = join(REPO_ROOT, 'themes', 'theme-catalog.capture.json');
@@ -37,11 +37,7 @@ function loadCapture(): ThemeCatalogCapture {
   return { catalog: raw.catalog, instances: raw.instances };
 }
 
-/**
- * Every artifact this script owns: the theme-instance compile, plus the
- * framework-free artifact (OMN-21848) built from the same catalog and the
- * status palette in themes/status-palette.json.
- */
+// Theme-instance compile plus the framework-free artifact (OMN-21848).
 function compileAll(): readonly CompiledArtifact[] {
   const capture = loadCapture();
   const palette = parseStatusPalette(JSON.parse(readFileSync(PALETTE_SOURCE, 'utf8')));
