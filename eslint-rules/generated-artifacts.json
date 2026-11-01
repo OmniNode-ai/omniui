@@ -1,5 +1,5 @@
 {
-  "_doc": "Every generated artifact in this repo, and the parity checker that proves it equals a fresh compile of its declared source. `generated-artifact-parity` reads this file. An artifact that carries the GENERATED banner but is not listed here is an error: an artifact nothing can re-derive is one that can be hand-patched while every other rule still passes, which is exactly what plan §2.3 says makes the other four rules durable.",
+  "_doc": "Every generated artifact in this repo, and the parity checker that proves it equals a fresh compile of its declared source. `generated-artifact-parity` reads this file. An artifact that carries the GENERATED banner but is not listed here is an error: an artifact nothing can re-derive is one that can be hand-patched while every other rule still passes, which is exactly what makes the other four rules durable.",
   "artifacts": [
     {
       "pattern": "^src/generated/tokens/[^/]+\\.css$",
@@ -21,7 +21,7 @@
       "regenerate": "npm run compile:tokens",
       "parity_checker": "npm run check:tokens",
       "parity_mechanism": "byte comparison against a fresh in-process compile",
-      "note": "Tailwind v4 @theme preset, omniweb only (D7). A compile product like any other: under D3 rule 1 no token value may originate in it."
+      "note": "Tailwind v4 @theme preset, public web application only (D7). A compile product like any other: under D3 rule 1 no token value may originate in it."
     },
     {
       "pattern": "^src/generated/tokens/index\\.json$",
@@ -35,8 +35,15 @@
       "source": "schema/onex-models.json",
       "regenerate": "npm run generate:onex-models",
       "parity_checker": "src/generated/mirror-freshness.test.ts",
-      "parity_mechanism": "symbol containment on both sides plus a digest match against schema/PROVENANCE.md",
-      "note": "The JSON Schema half is emitted upstream by omnibase_core's scripts/emit_ts_types.py and needs a Python toolchain, so a full regenerate-and-diff cannot run in this repo's CI. What CI enforces is the half that rots: the checked-in schema is the one PROVENANCE.md records, and the emitted TypeScript carries the same symbols."
+      "parity_mechanism": "symbol containment on both sides plus a digest match against schema/onex-models.provenance.json",
+      "note": "The JSON Schema half is emitted upstream by omnibase_core's scripts/emit_ts_types.py and needs a Python toolchain, so a full regenerate-and-diff cannot run in this repo's CI. What CI enforces is the half that rots: the checked-in schema is the one schema/onex-models.provenance.json records, and the emitted TypeScript carries the same symbols."
+    },
+    {
+      "pattern": "^schema/onex-models\\.provenance\\.json$",
+      "source": "schema/onex-models.json",
+      "regenerate": "npm run generate:onex-models",
+      "parity_checker": "npm run check:generated",
+      "parity_mechanism": "the digest and definitions count recorded in the file are compared with the schema on disk (scripts/check-generated-artifacts.ts)"
     }
   ]
 }

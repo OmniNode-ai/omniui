@@ -12,6 +12,10 @@
  * class of generated file nothing declared. This walks the tree by bytes, so
  * extension is irrelevant.
  *
+ * A third check covers the schema mirror: `schema/onex-models.provenance.json`
+ * must record the digest and the definitions count of the schema actually
+ * checked in, so a schema refreshed without regenerating fails here.
+ *
  * Two directions, both errors:
  *
  * - a file carrying the GENERATED banner that no manifest entry covers — an
@@ -22,6 +26,7 @@
  *   which is Stall 2's shape exactly.
  */
 
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -77,6 +82,22 @@ for (const entry of loadManifest().artifacts) {
       `manifest pattern ${entry.pattern} matches nothing on disk — a checker guarding a file nobody has`,
     );
   }
+}
+
+const schemaRaw = readFileSync(join(REPO_ROOT, 'schema', 'onex-models.json'), 'utf8');
+const provenance = JSON.parse(
+  readFileSync(join(REPO_ROOT, 'schema', 'onex-models.provenance.json'), 'utf8'),
+) as { source_commit?: string; schema_sha256?: string; defs_count?: number };
+const regenerate = 'npm run generate:onex-models';
+if (provenance.schema_sha256 !== createHash('sha256').update(schemaRaw, 'utf8').digest('hex')) {
+  problems.push(`schema/onex-models.provenance.json records a different schema digest — regenerate with \`${regenerate}\``);
+}
+const defsCount = Object.keys((JSON.parse(schemaRaw) as { $defs: Record<string, unknown> }).$defs).length;
+if (provenance.defs_count !== defsCount) {
+  problems.push(`schema/onex-models.provenance.json records ${String(provenance.defs_count)} definitions, the schema carries ${String(defsCount)} — regenerate with \`${regenerate}\``);
+}
+if (!/^[0-9a-f]{40}$/.test(provenance.source_commit ?? '')) {
+  problems.push('schema/onex-models.provenance.json does not record a 40-character source commit');
 }
 
 if (problems.length > 0) {

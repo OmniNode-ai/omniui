@@ -54,12 +54,17 @@ repos:
         args: [--repo, omniui, --visibility, public]
         require_serial: true
 
-  # Public-repository hygiene. Local twin of the required CI context
-  # public-repo-hygiene / public-repo-hygiene and of deployment-config. The first reads the
-  # private vocabulary named by OMNI_HYGIENE_VOCAB_PATH and fails closed without it.
+  # kb-doc-gate is the document-placement gate (README only; prose goes to the public
+  # knowledge base), the local twin of .github/workflows/kb-doc-gate.yml at the same rev.
+  # Public-repository hygiene: local twin of the required CI context
+  # public-repo-hygiene / public-repo-hygiene and of deployment-config. The
+  # public-repo-hygiene hook reads the private vocabulary named by OMNI_HYGIENE_VOCAB_PATH
+  # and fails closed without it.
   - repo: https://github.com/OmniNode-ai/omniclaude
     rev: fcb1a9047e65c97f2577cafbc392f202afa57d36
     hooks:
+      - id: kb-doc-gate
+        require_serial: true
       - id: public-repo-hygiene
         require_serial: true
       - id: deployment-config

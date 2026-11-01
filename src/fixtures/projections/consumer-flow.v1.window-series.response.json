@@ -9,7 +9,7 @@
     "columns_note": "Exactly the fourteen declared columns, in declared order, byte-identical in name and order to the cross-section capture. A trend fixture that drifted from the exposure would falsify nothing.",
     "rows_note": "Row VALUES are authored, as in the cross-section capture, and for the same stated reason: a live read of a quiet lane yields eight IDLE windows and proves nothing. This series is the OMN-16777 AC2 shape unfolding — messages_in climbing while messages_out flatlines at zero, upstream_evidence staying PRODUCED, and flow_state turning FLOWING -> STALLED at the window where output stops.",
     "gap_note": "Window 5 (2026-01-01T00:03:00Z) carries null counters and flow_state UNKNOWN: the window was never observed. It is here so a renderer's null handling is exercised by the fixture rather than by a reviewer's imagination. A series that draws it as zero shows a throughput collapse that did not happen, which is the same false-green OMN-16777 AC5 closes on the board.",
-    "live_cross_check": "Not performed for this capture. The cross-section capture's live cross-check (a read-only GET against the .201 dev lane) established the envelope shape and the column set; this capture reuses that shape and varies only the rows, so a second read would confirm nothing the first did not."
+    "live_cross_check": "Not performed for this capture. The cross-section capture's live cross-check (a read-only GET against the dev lane) established the envelope shape and the column set; this capture reuses that shape and varies only the rows, so a second read would confirm nothing the first did not."
   },
   "topic": "onex.snapshot.projection.consumer-flow.v1",
   "projection_version": "1.0.0",

@@ -8,7 +8,7 @@
  * artifact, deterministically and digested.
  *
  * **This migrates OMN-2951's mechanism rather than re-authoring it.** The
- * shape is lifted from `omniweb/scripts/compile-tokens.ts`: parse a declared
+ * shape is lifted from the token compiler of the public web application: parse a declared
  * source, validate it, emit CSS + TypeScript + a framework preset, and digest
  * the canonical JSON of the *input*. Three things change, each for a recorded
  * reason:
@@ -236,10 +236,10 @@ export function compileBarrel(themeIds: readonly string[]): string {
 /**
  * Compile one theme instance to a Tailwind v4 `@theme` artifact.
  *
- * **omniweb only** (D7). Tailwind and shadcn are dropped in omnidash, where
- * they were vestigial — two full token vocabularies against roughly fourteen
- * real utility usages. omniweb uses Tailwind meaningfully, so the app sheds the
- * framework and the pipeline keeps one emitter.
+ * **For the public web application only** (D7). Tailwind and shadcn are dropped in
+ * the dashboard, where they were vestigial — two full token vocabularies against
+ * roughly fourteen real utility usages. The public web application uses Tailwind
+ * meaningfully, so the dashboard sheds the framework and the pipeline keeps one emitter.
  *
  * Under D3 rule 1 **no token value may originate here.** This is a compile
  * product exactly like the CSS, subject to the same drift gate; a value that
@@ -260,7 +260,7 @@ export function compileTailwindTheme(
     ` * revision ${semver(instance.instance_revision)} · schema ${semver(instance.schema_version)}`,
     ` * ${contentDigest}`,
     ' *',
-    ' * omniweb only (D7). omnidash does not consume Tailwind.',
+    ' * Public web application only (D7). The dashboard does not consume Tailwind.',
     ' */',
     '@theme {',
   ];

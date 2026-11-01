@@ -167,8 +167,8 @@ describe('the shipped consumer registry', () => {
     const manifest = JSON.parse(
       readFileSync(join(REPO_ROOT, 'docs', 'downstream-consumers.json'), 'utf8'),
     );
-    // Phase 1A makes zero commits to omnidash or omniweb (G1A.6), so neither
-    // consumes the package yet. An active pin site here would mean the bump
+    // Phase 1A makes zero commits to omnidash (G1A.6), so it does not
+    // consume the package yet. An active pin site here would mean the bump
     // matrix targets a repo that never took the dependency.
     for (const repo of manifest.repos) {
       expect({ name: repo.name, pinSites: repo.pin_sites }).toStrictEqual({
@@ -176,6 +176,6 @@ describe('the shipped consumer registry', () => {
         pinSites: [],
       });
     }
-    expect(manifest.repos.map((r) => r.name).sort()).toStrictEqual(['omnidash', 'omniweb']);
+    expect(manifest.repos.map((r) => r.name).sort()).toStrictEqual(['omnidash']);
   });
 });
