@@ -112,7 +112,7 @@
       "metric_key": "messages_in",
       "label": "Messages in",
       "unit": null,
-      "value_format": "number",
+      "format": "number",
       "precision": 0,
       "show_trend": true,
       "trend_key": "messages_out",
@@ -129,8 +129,8 @@
         "prerelease": null,
         "build": null
       },
-      "source_revision": "3bbd8efa1664e2625f9a9862b0bf3b56675d7181"
+      "source_revision": "9c3439df129e1c76877170628a92d07f9ec81c4f"
     },
-    "content_digest": "sha256:999553c8d4cc1555e268fe527f2cc22eec8df980997cd6927621d8e276dbb8b7"
+    "content_digest": "sha256:c1bec3683a5ad5f2cba7a7b68a0b725e50e1e8a087fba76e26e0ed28010203be"
   }
 }

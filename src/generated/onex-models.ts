@@ -730,7 +730,7 @@ export type Name4 = string
  */
 export type DataKey = string
 /**
- * Series color (hex)
+ * Name of the ModelRendererThemeContract colour token this series resolves to (e.g. 'color_accent_primary'). A NAME, never a colour value.
  */
 export type Color = (string | null)
 /**
@@ -754,7 +754,7 @@ export type Sources = string[]
  */
 export type Value = number
 /**
- * Color when threshold is reached (hex)
+ * Name of the ModelRendererThemeContract colour token applied when the threshold is reached (e.g. 'color_status_warning'). A NAME, never a colour value.
  */
 export type Color1 = string
 /**
@@ -2675,20 +2675,21 @@ sources?: Sources
  * Attributes:
  *     value: The numeric threshold value. When the metric reaches or
  *         exceeds this value, the associated color is applied.
- *     color: Hex color code to apply when threshold is reached. Must be
- *         a valid hex format (#RGB, #RRGGBB, #RGBA, or #RRGGBBAA).
+ *     color: Name of the ModelRendererThemeContract colour token to apply
+ *         when the threshold is reached (e.g. "color_status_warning"). A
+ *         NAME, never a colour value.
  *     label: Optional human-readable label for the threshold level
  *         (e.g., "Good", "Warning", "Critical").
  * 
  * Raises:
- *     ValueError: If color is not a valid hex color format.
+ *     ValueError: If color is not a colour token of the theme contract.
  * 
  * Example:
  *     Single warning threshold::
  * 
  *         threshold = ModelMetricThreshold(
  *             value=80.0,
- *             color="#eab308",
+ *             color="color_status_warning",
  *             label="High Usage",
  *         )
  * 

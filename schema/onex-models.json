@@ -1705,7 +1705,7 @@
             }
           ],
           "default": null,
-          "description": "Series color (hex)",
+          "description": "Name of the ModelRendererThemeContract colour token this series resolves to (e.g. 'color_accent_primary'). A NAME, never a colour value.",
           "title": "Color"
         },
         "series_type": {
@@ -1765,7 +1765,7 @@
     },
     "ModelMetricThreshold": {
       "additionalProperties": false,
-      "description": "Threshold configuration for conditional metric coloring.\n\nDefines a value threshold that triggers a color change in metric card\nwidgets. Multiple thresholds can be configured to create a color scale\n(e.g., green -> yellow -> red) based on the metric value.\n\nThresholds are typically evaluated in ascending order by value. When\nthe metric exceeds a threshold value, that threshold's color is applied.\n\nAttributes:\n    value: The numeric threshold value. When the metric reaches or\n        exceeds this value, the associated color is applied.\n    color: Hex color code to apply when threshold is reached. Must be\n        a valid hex format (#RGB, #RRGGBB, #RGBA, or #RRGGBBAA).\n    label: Optional human-readable label for the threshold level\n        (e.g., \"Good\", \"Warning\", \"Critical\").\n\nRaises:\n    ValueError: If color is not a valid hex color format.\n\nExample:\n    Single warning threshold::\n\n        threshold = ModelMetricThreshold(\n            value=80.0,\n            color=\"#eab308\",\n            label=\"High Usage\",\n        )",
+      "description": "Threshold configuration for conditional metric coloring.\n\nDefines a value threshold that triggers a color change in metric card\nwidgets. Multiple thresholds can be configured to create a color scale\n(e.g., green -> yellow -> red) based on the metric value.\n\nThresholds are typically evaluated in ascending order by value. When\nthe metric exceeds a threshold value, that threshold's color is applied.\n\nAttributes:\n    value: The numeric threshold value. When the metric reaches or\n        exceeds this value, the associated color is applied.\n    color: Name of the ModelRendererThemeContract colour token to apply\n        when the threshold is reached (e.g. \"color_status_warning\"). A\n        NAME, never a colour value.\n    label: Optional human-readable label for the threshold level\n        (e.g., \"Good\", \"Warning\", \"Critical\").\n\nRaises:\n    ValueError: If color is not a colour token of the theme contract.\n\nExample:\n    Single warning threshold::\n\n        threshold = ModelMetricThreshold(\n            value=80.0,\n            color=\"color_status_warning\",\n            label=\"High Usage\",\n        )",
       "properties": {
         "value": {
           "description": "Threshold value",
@@ -1773,7 +1773,7 @@
           "type": "number"
         },
         "color": {
-          "description": "Color when threshold is reached (hex)",
+          "description": "Name of the ModelRendererThemeContract colour token applied when the threshold is reached (e.g. 'color_status_warning'). A NAME, never a colour value.",
           "title": "Color",
           "type": "string"
         },
