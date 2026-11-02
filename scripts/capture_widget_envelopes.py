@@ -341,18 +341,13 @@ def build_throughput_trend() -> ModelWidgetEnvelope:
         config=ModelWidgetConfigChart(
             chart_type="line",
             series=(
-                # `color` is deliberately LEFT UNSET, and that is a finding
-                # rather than a preference. The field is documented "Series
-                # color (hex)" and is enforced by a hex-format validator, so it
-                # can hold a literal and nothing else -- a theme token NAME is
-                # rejected outright. A chart whose series colours live in its
-                # config renders the same hues under every theme, which is the
-                # drift the `svg-and-chart-inputs` rule exists to find and which
-                # the theme contract's own docstring forbids. GC.5's grep only
-                # covered `ModelWidgetConfig*` DEFAULTS, so this nested field
-                # passed it. Recorded as a residual; omniui resolves series
-                # colour from the active theme instead, and leaves the field
-                # None so no fixture pins a hue.
+                # `color` is deliberately LEFT UNSET. Since OMN-16948 the field
+                # names a theme token (`color_*`, a field of
+                # ModelRendererThemeContract) and no longer holds a hex literal,
+                # so a series colour can live in config without pinning a hue.
+                # This fixture still leaves it None: omniui resolves series
+                # colour from the active theme, and pinning a token here would
+                # assert a colour decision the fixture has no business making.
                 ModelChartSeriesConfig(
                     name="Messages in",
                     data_key="messages_in",

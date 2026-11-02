@@ -113,41 +113,22 @@ describe('captured widget envelopes', () => {
   it('validates against ModelWidgetEnvelope from the generated mirror', () => {
     const validate = validatorFor('ModelWidgetEnvelope');
     for (const envelope of WIDGET_ENVELOPES) {
-      if (envelope.widget_id === 'onex.widget.consumer_flow_backlog') {
-        // Excluded, and the exclusion is itself asserted in the next test. See
-        // the finding recorded there: the metric-card config cannot satisfy
-        // both its seal and its published schema at the same time, and that is
-        // an upstream defect rather than a fixture mistake.
-        continue;
-      }
       expect(validate(envelope), envelope.widget_id).toBe(true);
     }
   });
 
-  it('records the upstream alias defect: a sealed metric card fails its own schema', () => {
-    // FINDING (upstream, Phase C2 / OMN-16883). `ModelWidgetConfigMetricCard`
-    // declares `value_format` with `alias="format"`. The published JSON Schema
-    // comes from `model_json_schema()`, which serialises BY ALIAS, so the
-    // schema says `format` and forbids additional properties. The seal comes
-    // from `model_dump(mode="json")` in `compute_widget_envelope_digest`, which
-    // serialises BY FIELD NAME, so the sealed bytes say `value_format`.
-    //
-    // The two cannot both be satisfied. An envelope written in the wire form
-    // its schema describes digests to something other than its seal; an
-    // envelope written in the form its seal covers is rejected by its schema.
-    // Every aliased field in the widget-config union has this property —
-    // `ModelWidgetConfigEventFeed.event_filter`/`filter` is the other one.
-    //
-    // omniui cannot fix it: the digest and the schema are both produced in
-    // `omnibase_core`, and Phase 1B commits nothing there. So the mismatch is
-    // pinned here instead. **When core resolves it, this test goes red**, which
-    // is the signal to re-run `scripts/capture_widget_envelopes.py` and move
-    // the backlog envelope back into the test above.
-    const validate = validatorFor('ModelWidgetEnvelope');
-    expect(() => validate(CONSUMER_FLOW_BACKLOG)).toThrow(/value_format/);
+  it('writes the metric-card format under its wire name, so seal and schema agree', () => {
+    // OMN-16948. `ModelWidgetConfigMetricCard.value_format` is aliased `format`.
+    // Core used to seal the field-name form (`value_format`) while publishing a
+    // schema that describes the alias (`format`) and forbids additional
+    // properties, so no metric-card envelope could satisfy both. Core now seals
+    // and serialises by alias, and this fixture was re-captured from it: the
+    // bytes validate against the schema (the test above) and re-derive their
+    // seal in TypeScript (the test before it). This pins the wire name itself
+    // so a regression to the field-name form cannot pass quietly.
     const config = CONSUMER_FLOW_BACKLOG.config as Record<string, unknown>;
-    expect(config.value_format).toBe('number');
-    expect(config.format).toBeUndefined();
+    expect(config.format).toBe('number');
+    expect(config.value_format).toBeUndefined();
   });
 
   it('rejects an envelope whose content moved without its seal', () => {
