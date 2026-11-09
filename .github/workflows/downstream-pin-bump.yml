@@ -14,8 +14,11 @@
 #   2. Runners are hardcoded ubuntu-latest. omniui is public
 #      (project_public_repos_use_github_hosted_runners). Do NOT port the
 #      OMNI_TRUSTED_CI_RUNS_ON_JSON selector across.
-#   3. Triggered on release publish, not push-to-main, matching publish.yml's
-#      release-triggered model.
+#   3. Triggered by workflow_dispatch only. It used to run on release publish,
+#      matching publish.yml's release-triggered model; RULING
+#      2026-11-09T21:54:25Z lane=orchestrator-31d9 (OMN-18594) turned that off:
+#      a downstream repository moves its pin on a sibling only when it needs
+#      something new from it, so a release no longer opens pin PRs on its own.
 #   4. The manifest is JSON and the rewriter is Node. The staged draft used YAML
 #      + a Python script; this repo has neither a Python toolchain nor a YAML
 #      parser, and adding both to a public component library so one CI step can
@@ -31,13 +34,11 @@
 name: Publish downstream pin bumps
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       override_version:
-        description: "Version to pin (defaults to the release tag, minus the leading v)."
-        required: false
+        description: "Exact version to pin (X.Y.Z); with no release event there is no tag to default to."
+        required: true
 
 permissions:
   contents: read
