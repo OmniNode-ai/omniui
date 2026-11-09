@@ -20,6 +20,7 @@ export default defineConfig({
       'src/**/*.test.{ts,tsx}',
       'eslint-rules/**/*.test.js',
       'scripts/**/*.test.js',
+      'tests/**/*.test.js',
     ],
     clearMocks: true,
     restoreMocks: true,
